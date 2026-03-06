@@ -1,0 +1,79 @@
+{
+  "projectType": "saas",
+  "projectName": "Who To Bother",
+  "projectDescription": "Find the right people to reach out to at your favorite tech companies on X",
+  "theme": "almond",
+  "primaryColor": "#040404",
+  "lightColor": "#f5ba74",
+  "darkColor": "#7c6444",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/searching",
+              "features/company-pages",
+              "features/statistics"
+            ]
+          },
+          {
+            "group": "Community",
+            "pages": [
+              "community/contributing",
+              "community/authentication",
+              "community/submitting-changes"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Contributing",
+            "pages": [
+              "development/setup",
+              "development/adding-companies",
+              "development/schema-validation",
+              "development/adding-logos"
+            ]
+          },
+          {
+            "group": "Technical Reference",
+            "pages": [
+              "reference/data-schema",
+              "reference/tech-stack",
+              "reference/project-structure"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Community-maintained directory of tech company contacts on X",
+    "Search and browse companies by name or product",
+    "View categorized contacts with Twitter handles and optional email/Discord",
+    "Contribute new companies or edit existing ones via GitHub integration",
+    "JSON schema validation with Valibot for data integrity",
+    "Authentication system for contributors",
+    "Statistics and analytics dashboard",
+    "Dark and light theme support"
+  ],
+  "publicApiSurface": [
+    "/api/auth/* - Authentication endpoints (better-auth)",
+    "/api/github/companies - Fetch company data",
+    "/api/github/fork - Fork repository for contributions",
+    "/api/github/create-pr - Create pull request for changes",
+    "Company data JSON files in src/data/companies/",
+    "CompanySchema, CategorySchema, ContactSchema (Valibot validation schemas)",
+    "Company type, Category type, Contact type (TypeScript types)"
+  ]
+}
