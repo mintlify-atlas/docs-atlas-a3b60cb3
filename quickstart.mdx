@@ -1,80 +1,277 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start Guide
+description: Learn how to find and reach out to tech company contacts on X in minutes
 ---
 
-## Get started in three steps
+## Welcome to Who To Bother
 
-Get your documentation site running locally and make your first customization.
+Who To Bother is a community-maintained directory that helps developers find the right people to reach out to at tech companies on X (formerly Twitter). Whether you need product feedback, technical support, or community engagement, this guide will show you how to use the platform effectively.
 
-### Step 1: Set up your local environment
+<Steps>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+<Step title="Visit the website">
+Navigate to [who-to-bother-at.com](https://who-to-bother-at.com) to access the directory. You'll see a list of tech companies with their logos, names, and descriptions.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+The platform is completely free and open-source. No account or registration required.
 </Note>
+</Step>
+
+<Step title="Search for companies or products">
+Use the search bar at the top of the page to quickly find what you're looking for. The search functionality supports:
+
+- **Company names** (e.g., "Appwrite", "Auth0")
+- **Product names** (e.g., "Developer Relations", "API")
+- **Keywords** in descriptions
+
+The search uses fuzzy matching powered by [Fuse.js](https://www.fusejs.io/), so it will find results even if you don't type the exact name.
+
+<Tip>
+Start typing in the search box and results will appear automatically. You don't need to press Enter.
+</Tip>
+
+### Example searches:
+- "appwrite" - finds Appwrite company
+- "developer relations" - finds all DevRel contacts across companies
+- "api" - finds API-related contacts and products
+</Step>
+
+<Step title="Browse company listings">
+If you prefer browsing, scroll through the company grid on the homepage. Each company card displays:
+
+- Company logo (when available)
+- Company name
+- Brief description of what they do
+- "View contacts" link
+
+Click any company card to view their full contact directory.
+</Step>
+
+<Step title="View company contacts">
+When you click on a company, you'll see their dedicated page organized into categories. For example, Appwrite's page includes:
+
+```json
+{
+  "categories": [
+    {
+      "name": "Official Accounts",
+      "contacts": [
+        {
+          "product": "Official Appwrite Account",
+          "handles": ["@appwrite"],
+          "email": "support@appwrite.io"
+        }
+      ]
+    },
+    {
+      "name": "Main Contacts",
+      "contacts": [
+        {
+          "product": "Founder & CEO",
+          "handles": ["@eldadfux"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Each contact entry shows:
+- **Product/Role**: What this person handles (e.g., "Founder & CEO", "Developer Relations")
+- **X Handles**: Twitter/X usernames (always start with @)
+- **Email**: Professional contact email (when publicly available)
+
+<Note>
+Email addresses are only included when they're publicly available or explicitly shared by the contact.
+</Note>
+</Step>
+
+<Step title="Understand contact etiquette">
+Before reaching out, keep these best practices in mind:
+
+<Card title="Do's" icon="check">
+- Be specific and concise in your message
+- Reference the product or feature you're asking about
+- Be respectful of their time
+- Check if there's an official support channel first
+- Mention if you've already tried official documentation
+</Card>
+
+<Card title="Don'ts" icon="x">
+- Don't spam multiple contacts at once
+- Avoid asking already-documented questions
+- Don't share sensitive information via X DMs
+- Don't expect immediate responses
+- Avoid reaching out outside business hours unless urgent
+</Card>
+
+<Tip>
+Many companies have official support accounts listed in the "Official Accounts" category. Start there for general questions before contacting individuals.
+</Tip>
+</Step>
+
+<Step title="Reach out on X">
+Once you've identified the right contact:
+
+1. **Click the X handle** to visit their profile
+2. **Review their bio** to confirm they handle your topic
+3. **Check their recent posts** to see if they're active
+4. **Send a clear, respectful message**
+
+### Example message template:
+
+```text
+Hi @[handle]! 👋
+
+I'm working with [Product Name] and ran into [specific issue/question].
+
+I've already:
+- Checked the docs at [link]
+- Tried [what you've attempted]
+
+[Your specific question in 1-2 sentences]
+
+Any guidance would be appreciated! Thanks for your time.
+```
+</Step>
+
+<Step title="Keep the directory updated">
+Found outdated information or want to add your company? Contributing is easy:
+
+<CardGroup cols={2}>
+<Card title="Add a Company" icon="plus" href="/community/contributing">
+Learn how to add your company to the directory with a simple JSON file
+</Card>
+
+<Card title="Update Contacts" icon="pen" href="/community/contributing">
+Help keep contact information accurate by submitting updates via pull requests
+</Card>
+</CardGroup>
+
+The directory is community-maintained on GitHub. All contributions are reviewed before being published.
+
+<Note>
+See the [Contributing Guide](/community/contributing) for detailed instructions on adding or updating company information.
+</Note>
+</Step>
+
+</Steps>
+
+## Search Page Features
+
+The search functionality (available at `/search?q=your-query`) provides:
+
+- **Real-time results** as you type
+- **Company results**: Direct links to company pages
+- **Product results**: Shows specific products/roles with their handles
+- **Fuzzy matching**: Finds results even with typos
+
+The search is implemented using Fuse.js with these weighted priorities:
+
+```typescript
+{
+  keys: [
+    { name: "name", weight: 2 },           // Product/company name
+    { name: "description", weight: 1 },    // Description text
+    { name: "companyName", weight: 1.5 }   // Company name for products
+  ],
+  threshold: 0.4,
+  ignoreLocation: true
+}
+```
+
+## Understanding the Data Structure
+
+Every company in the directory follows this schema:
+
+```json
+{
+  "$schema": "./schema.json",
+  "id": "company-slug",
+  "name": "Company Name",
+  "description": "Brief description of the company",
+  "logoType": "company-slug",
+  "categories": [
+    {
+      "name": "Category Name",
+      "contacts": [
+        {
+          "product": "Product or Role",
+          "handles": ["@twitter_handle"],
+          "email": "contact@example.com"
+        }
+      ]
+    }
+  ]
+}
+```
+
+<Tip>
+The schema is validated using [Valibot](https://valibot.dev) to ensure data quality. All submissions must pass validation before deployment.
+</Tip>
+
+## Tech Stack
+
+Understanding the technology helps you contribute more effectively:
+
+<CardGroup cols={2}>
+<Card title="Frontend" icon="react">
+React 19 with TypeScript for type safety
+</Card>
+
+<Card title="Routing" icon="route">
+TanStack Start for modern routing
+</Card>
+
+<Card title="Styling" icon="paintbrush">
+Tailwind CSS for responsive design
+</Card>
+
+<Card title="Deployment" icon="cloud">
+Cloudflare Pages for fast global delivery
+</Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Contributing Guide" icon="code" href="/community/contributing">
+Add your company or update existing contacts
+</Card>
+
+<Card title="Local Development" icon="terminal" href="/development/setup">
+Set up the project locally to test your changes
+</Card>
+
+<Card title="GitHub Repository" icon="github" href="https://github.com/kulterryan/who-to-bother-at-on-x">
+View the source code and submit issues
+</Card>
+
+<Card title="Contact Creator" icon="message" href="https://x.com/thehungrybird_">
+Reach out to @thehungrybird_ on X with questions
+</Card>
+</CardGroup>
+
+## Frequently Asked Questions
+
+<AccordionGroup>
+<Accordion title="Is this directory officially affiliated with the listed companies?">
+No, this is a community-maintained resource and is not officially affiliated with any of the listed companies. For official support, please visit the respective company websites.
+</Accordion>
+
+<Accordion title="How often is the directory updated?">
+The directory is updated whenever community members submit pull requests. Updates are reviewed and deployed continuously.
+</Accordion>
+
+<Accordion title="Can I add my own company?">
+Yes! If you work at a tech company and want to be listed, follow the [Contributing Guide](/community/contributing) to add your company information.
+</Accordion>
+
+<Accordion title="What if I want to remove my information?">
+Contact [@thehungrybird_](https://x.com/thehungrybird_) on X or submit a pull request removing your information from the repository.
+</Accordion>
+
+<Accordion title="How is contact information verified?">
+All contact information must be publicly available. The community reviews submissions to ensure accuracy, but we recommend verifying contact details before reaching out.
+</Accordion>
+</AccordionGroup>

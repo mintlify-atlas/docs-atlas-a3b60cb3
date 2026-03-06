@@ -1,0 +1,461 @@
+---
+title: "Data Schema"
+description: "Complete reference for the Who To Bother company data schema with Valibot validation"
+---
+
+## Overview
+
+Who To Bother uses [Valibot](https://valibot.dev) for runtime schema validation and type inference. All company data files must conform to the schema defined in `src/data/companies/schema.ts`.
+
+The schema ensures data integrity with strict validation rules for company information, contact details, and social media handles.
+
+## Schema Architecture
+
+### Single Source of Truth
+
+```
+Valibot Schema (schema.ts)
+    ↓
+TypeScript Types (inferred)
+    ↓
+JSON Schema (generated for IDE support)
+    ↓
+Runtime Validation (build-time checks)
+```
+
+The Valibot schema serves as the single source of truth. TypeScript types are automatically inferred, and a JSON schema is generated for IDE autocomplete support.
+
+## Company Schema
+
+The top-level schema representing a complete company entry.
+
+<ParamField path="$schema" type="string" optional>
+  JSON Schema reference for IDE autocomplete support
+</ParamField>
+
+<ParamField path="id" type="string" required>
+  Unique company identifier. Must be lowercase with only letters, numbers, and hyphens.
+  
+  **Validation**: Regex `/^[a-z0-9-]+$/`
+  
+  **Error**: "Company ID must be lowercase with only letters, numbers, and hyphens"
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  Display name of the company.
+  
+  **Validation**: Minimum 1 character
+  
+  **Error**: "Company name is required"
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Brief description of the company and its products/services.
+  
+  **Validation**: Minimum 1 character
+  
+  **Error**: "Company description is required"
+</ParamField>
+
+<ParamField path="logoType" type="string" required>
+  Type of logo used for display. References logo files in the project.
+  
+  **Validation**: Minimum 1 character
+  
+  **Error**: "Logo type is required"
+</ParamField>
+
+<ParamField path="logo" type="string" optional>
+  Optional logo URL or path reference
+</ParamField>
+
+<ParamField path="website" type="string" optional>
+  Company website URL.
+  
+  **Validation**: Must be a valid URL
+  
+  **Error**: "Must be a valid URL"
+</ParamField>
+
+<ParamField path="docs" type="string" optional>
+  Documentation website URL.
+  
+  **Validation**: Must be a valid URL
+  
+  **Error**: "Must be a valid URL"
+</ParamField>
+
+<ParamField path="github" type="string" optional>
+  GitHub organization or repository URL.
+  
+  **Validation**: Must be a valid URL
+  
+  **Error**: "Must be a valid URL"
+</ParamField>
+
+<ParamField path="discord" type="string" optional>
+  Discord community invite URL.
+  
+  **Validation**: Must be a valid URL
+  
+  **Error**: "Must be a valid URL"
+</ParamField>
+
+<ParamField path="categories" type="Category[]" required>
+  Array of contact categories. Must contain at least one category.
+  
+  **Validation**: Minimum 1 category
+  
+  **Error**: "At least one category is required"
+</ParamField>
+
+## Category Schema
+
+Represents a category of contacts grouped by product, team, or functional area.
+
+<ParamField path="name" type="string" required>
+  Category name (e.g., "Frameworks & OSS", "AI", "Support").
+  
+  **Validation**: Minimum 1 character
+  
+  **Error**: "Category name is required"
+</ParamField>
+
+<ParamField path="contacts" type="Contact[]" required>
+  Array of contacts within this category. Must contain at least one contact.
+  
+  **Validation**: Minimum 1 contact
+  
+  **Error**: "At least one contact is required per category"
+</ParamField>
+
+## Contact Schema
+
+Represents an individual contact or role with associated social handles.
+
+<ParamField path="product" type="string" required>
+  Product name, role, or area of responsibility (e.g., "Next.js", "Community Manager").
+  
+  **Validation**: Minimum 1 character
+  
+  **Error**: "Product name is required"
+</ParamField>
+
+<ParamField path="handles" type="string[]" required>
+  Array of X (Twitter) handles. Must start with `@` and contain only letters, numbers, and underscores.
+  
+  **Validation**: 
+  - Regex `/^@[a-zA-Z0-9_]+$/` per handle
+  - Minimum 1 handle required
+  
+  **Errors**:
+  - "Handle must start with @ and contain only letters, numbers, and underscores"
+  - "At least one handle is required"
+</ParamField>
+
+<ParamField path="email" type="string" optional>
+  Optional contact email address.
+  
+  **Validation**: Must be a valid email format
+  
+  **Error**: "Must be a valid email address"
+</ParamField>
+
+<ParamField path="discord" type="string" optional>
+  Optional Discord profile or server URL.
+  
+  **Validation**: Must be a valid URL
+  
+  **Error**: "Must be a valid URL"
+</ParamField>
+
+## TypeScript Types
+
+The schema automatically generates TypeScript types using Valibot's `InferOutput` utility:
+
+```typescript
+import type { InferOutput } from "valibot";
+
+// Inferred types
+export type Contact = InferOutput<typeof ContactSchema>;
+export type Category = InferOutput<typeof CategorySchema>;
+export type Company = InferOutput<typeof CompanySchema>;
+```
+
+### Type Definitions
+
+<Expandable title="Contact Type">
+
+```typescript
+type Contact = {
+  product: string;
+  handles: string[];
+  email?: string;
+  discord?: string;
+}
+```
+
+</Expandable>
+
+<Expandable title="Category Type">
+
+```typescript
+type Category = {
+  name: string;
+  contacts: Contact[];
+}
+```
+
+</Expandable>
+
+<Expandable title="Company Type">
+
+```typescript
+type Company = {
+  $schema?: string;
+  id: string;
+  name: string;
+  description: string;
+  logoType: string;
+  logo?: string;
+  website?: string;
+  docs?: string;
+  github?: string;
+  discord?: string;
+  categories: Category[];
+}
+```
+
+</Expandable>
+
+## Valibot Schema Source
+
+<Expandable title="Complete Schema (src/data/companies/schema.ts)">
+
+```typescript
+import {
+  array,
+  email,
+  type InferOutput,
+  minLength,
+  object,
+  optional,
+  pipe,
+  regex,
+  string,
+  url,
+} from "valibot";
+
+// Contact schema - represents a single contact with product/role and handles
+export const ContactSchema = object({
+  product: pipe(string(), minLength(1, "Product name is required")),
+  handles: pipe(
+    array(
+      pipe(
+        string(),
+        regex(
+          /^@[a-zA-Z0-9_]+$/,
+          "Handle must start with @ and contain only letters, numbers, and underscores"
+        )
+      )
+    ),
+    minLength(1, "At least one handle is required")
+  ),
+  email: optional(pipe(string(), email("Must be a valid email address"))),
+  discord: optional(pipe(string(), url("Must be a valid URL"))),
+});
+
+// Category schema - represents a category of contacts
+export const CategorySchema = object({
+  name: pipe(string(), minLength(1, "Category name is required")),
+  contacts: pipe(
+    array(ContactSchema),
+    minLength(1, "At least one contact is required per category")
+  ),
+});
+
+// Company schema - represents a complete company with all contact information
+export const CompanySchema = object({
+  $schema: optional(string()),
+  id: pipe(
+    string(),
+    minLength(1, "Company ID is required"),
+    regex(
+      /^[a-z0-9-]+$/,
+      "Company ID must be lowercase with only letters, numbers, and hyphens"
+    )
+  ),
+  name: pipe(string(), minLength(1, "Company name is required")),
+  description: pipe(string(), minLength(1, "Company description is required")),
+  logoType: pipe(string(), minLength(1, "Logo type is required")),
+  logo: optional(string()),
+  website: optional(pipe(string(), url("Must be a valid URL"))),
+  docs: optional(pipe(string(), url("Must be a valid URL"))),
+  github: optional(pipe(string(), url("Must be a valid URL"))),
+  discord: optional(pipe(string(), url("Must be a valid URL"))),
+  categories: pipe(
+    array(CategorySchema),
+    minLength(1, "At least one category is required")
+  ),
+});
+
+// Infer TypeScript types from schemas
+export type Contact = InferOutput<typeof ContactSchema>;
+export type Category = InferOutput<typeof CategorySchema>;
+export type Company = InferOutput<typeof CompanySchema>;
+```
+
+</Expandable>
+
+## Example: Valid Company JSON
+
+<CodeGroup>
+
+```json Complete Example
+{
+  "$schema": "./schema.json",
+  "id": "vercel",
+  "name": "Vercel",
+  "description": "Frontend cloud platform for deploying web applications",
+  "logoType": "vercel",
+  "website": "https://vercel.com",
+  "docs": "https://vercel.com/docs",
+  "github": "https://github.com/vercel",
+  "categories": [
+    {
+      "name": "Frameworks & OSS",
+      "contacts": [
+        {
+          "product": "Next.js",
+          "handles": ["@timneutkens"]
+        },
+        {
+          "product": "Turborepo",
+          "handles": ["@anthonysheww"]
+        }
+      ]
+    },
+    {
+      "name": "v0 & AI",
+      "contacts": [
+        {
+          "product": "v0",
+          "handles": [
+            "@max_leiter",
+            "@EstebanSuarez",
+            "@rickeyswuave"
+          ]
+        },
+        {
+          "product": "AI SDK",
+          "handles": ["@nishimiya", "@nicoalbanese10"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+```json Minimal Example
+{
+  "$schema": "./schema.json",
+  "id": "example-company",
+  "name": "Example Company",
+  "description": "A sample company for demonstration",
+  "logoType": "example",
+  "categories": [
+    {
+      "name": "Support",
+      "contacts": [
+        {
+          "product": "General Support",
+          "handles": ["@support_team"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+</CodeGroup>
+
+## Validation
+
+### Build-Time Validation
+
+All company JSON files are validated before deployment:
+
+```bash
+# Run validation manually
+pnpm validate
+
+# Automatically runs before build
+pnpm build
+```
+
+The validation script (`src/scripts/validate-companies.ts`) checks all JSON files in `src/data/companies/` against the Valibot schema.
+
+### Common Validation Errors
+
+<ResponseField name="Handle Format Error" type="error">
+  **Message**: "Handle must start with @ and contain only letters, numbers, and underscores"
+  
+  **Fix**: Ensure all X handles start with `@` and only contain alphanumeric characters and underscores.
+  
+  ```json
+  // ❌ Invalid
+  "handles": ["timneutkens", "@user-name"]
+  
+  // ✅ Valid
+  "handles": ["@timneutkens", "@user_name"]
+  ```
+</ResponseField>
+
+<ResponseField name="URL Validation Error" type="error">
+  **Message**: "Must be a valid URL"
+  
+  **Fix**: Ensure URLs include the protocol (https://) and are properly formatted.
+  
+  ```json
+  // ❌ Invalid
+  "website": "vercel.com"
+  
+  // ✅ Valid
+  "website": "https://vercel.com"
+  ```
+</ResponseField>
+
+<ResponseField name="Empty Array Error" type="error">
+  **Message**: "At least one handle is required" or "At least one contact is required per category"
+  
+  **Fix**: Ensure arrays are not empty.
+  
+  ```json
+  // ❌ Invalid
+  "contacts": []
+  
+  // ✅ Valid
+  "contacts": [
+    {
+      "product": "Support",
+      "handles": ["@support"]
+    }
+  ]
+  ```
+</ResponseField>
+
+## JSON Schema Generation
+
+Generate a JSON schema file for IDE autocomplete support:
+
+```bash
+pnpm generate-schema
+```
+
+This creates `src/data/companies/schema.json` from the Valibot schema, enabling IntelliSense in editors when editing company JSON files.
+
+## Related
+
+- [Adding Companies](/development/adding-companies) - Learn how to add new companies
+- [Tech Stack](/reference/tech-stack) - Overview of technologies used
+- [Project Structure](/reference/project-structure) - Codebase organization

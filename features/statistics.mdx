@@ -1,0 +1,257 @@
+---
+title: Statistics
+description: View analytics and insights about the Who To Bother directory
+---
+
+The statistics page provides an overview of the Who To Bother directory, showing counts of companies, unique contacts, and total contact entries. All statistics are calculated at build time for optimal performance.
+
+## Accessing Statistics
+
+Visit `/stats` to view the current directory statistics. The page displays three main metrics in a responsive grid layout.
+
+## Key Metrics
+
+<CardGroup cols={3}>
+  <Card title="Companies" icon="building">
+    Total number of tech companies in the directory
+  </Card>
+  
+  <Card title="People" icon="users">
+    Unique individuals tracked across all companies
+  </Card>
+  
+  <Card title="Contact Entries" icon="list">
+    Total product/role listings (some people may appear multiple times)
+  </Card>
+</CardGroup>
+
+## Statistics Calculation
+
+### Build-Time Calculation
+
+Statistics are calculated once at module load time, not on every page visit (`src/app/stats.tsx:15-52`):
+
+```typescript
+function calculateStats() {
+  const companies = Object.entries(companyModules)
+    .filter(([path]) => !(path.includes("template") || path.includes("schema")))
+    .map(([_, module]) => module.default);
+
+  const companyCount = companies.length;
+  
+  // Count unique people by X handle
+  const uniqueHandles = new Set<string>();
+  for (const company of companies) {
+    for (const category of company.categories) {
+      for (const contact of category.contacts) {
+        for (const handle of contact.handles) {
+          uniqueHandles.add(handle.toLowerCase());
+        }
+      }
+    }
+  }
+
+  const peopleCount = uniqueHandles.size;
+  
+  // Count total contact entries
+  const totalContacts = companies.reduce(
+    (sum, company) =>
+      sum +
+      company.categories.reduce(
+        (catSum, category) => catSum + category.contacts.length,
+        0
+      ),
+    0
+  );
+
+  return { companyCount, peopleCount, totalContacts };
+}
+```
+
+<Info>
+  Statistics are cached at build time, making the stats page load instantly without needing to recalculate on every visit.
+</Info>
+
+## Understanding the Metrics
+
+### Companies Count
+
+This metric represents the total number of unique tech companies in the directory. Companies are automatically discovered using Vite's glob import:
+
+```typescript
+const companyModules = import.meta.glob<{ default: Company }>(
+  "../data/companies/*.json",
+  { eager: true }
+);
+```
+
+Template and schema files are excluded from the count.
+
+### People Count (Unique Handles)
+
+The people count tracks **unique X (Twitter) handles** across the entire directory.
+
+<Steps>
+  <Step title="Handle Collection">
+    All X handles are extracted from every contact entry across all companies
+  </Step>
+  
+  <Step title="Normalization">
+    Handles are converted to lowercase to ensure accurate deduplication
+    
+    ```typescript
+    uniqueHandles.add(handle.toLowerCase());
+    ```
+  </Step>
+  
+  <Step title="Deduplication">
+    A Set data structure automatically removes duplicates, counting each unique person only once
+  </Step>
+</Steps>
+
+<Note>
+  If a person appears in multiple companies or products, they're counted only once in the "People" metric.
+</Note>
+
+### Contact Entries Count
+
+This metric shows the total number of product/role listings across all companies and categories.
+
+**Why is this different from People count?**
+
+- A single person may handle multiple products (counted multiple times)
+- Multiple people may share responsibility for one product (counted as one entry)
+
+```typescript
+const totalContacts = companies.reduce(
+  (sum, company) =>
+    sum + company.categories.reduce(
+      (catSum, category) => catSum + category.contacts.length,
+      0
+    ),
+  0
+);
+```
+
+## Page Layout
+
+### Stats Grid
+
+The statistics are displayed in a responsive three-column grid:
+
+```tsx
+<div className="grid gap-6 md:grid-cols-3">
+  {/* Companies */}
+  <div className="rounded-xl border-2 bg-white p-6">
+    <div className="text-5xl font-bold text-orange-600">
+      {stats.companyCount}
+    </div>
+    <div className="text-lg font-medium">Companies</div>
+    <p className="text-sm">Tech companies in the database</p>
+  </div>
+  
+  {/* Similar structure for People and Contact Entries */}
+</div>
+```
+
+<Tip>
+  On mobile devices, the grid stacks into a single column for better readability.
+</Tip>
+
+### About the Data Section
+
+Below the metrics, an informational card explains how the data is structured:
+
+```tsx
+<div className="rounded-xl border-2 bg-white p-6">
+  <h2>About the Data</h2>
+  <div className="space-y-3">
+    <p>This database contains contact information for {stats.companyCount} 
+       tech companies, with {stats.peopleCount} unique people...</p>
+    <p>Each contact entry represents a specific product, team, or role...</p>
+    <p>Want to contribute? Check out our GitHub repository...</p>
+  </div>
+</div>
+```
+
+## SEO and Metadata
+
+The stats page includes dynamic metadata that updates with current counts:
+
+```typescript
+head: () => ({
+  meta: [
+    ...seo({
+      title: "Stats | who to bother on X",
+      description: `Browse ${stats.companyCount} tech companies and ${stats.peopleCount} contacts on X (Twitter).`,
+      keywords: "tech companies, contacts, X, Twitter, statistics, stats",
+      url: "https://who-to-bother-at.com/stats",
+    }),
+  ],
+})
+```
+
+<Card title="Dynamic Descriptions" icon="refresh">
+  The meta description automatically updates when new companies or contacts are added to the directory.
+</Card>
+
+## Use Cases
+
+The statistics page helps answer questions like:
+
+- **How comprehensive is the directory?** - See total company and contact counts
+- **Is there enough coverage?** - Evaluate if your target companies are likely included
+- **Database growth tracking** - Monitor directory expansion over time
+- **Contribution motivation** - Show contributors the impact of their additions
+
+## Contributing Impact
+
+The page includes a call-to-action linking to the GitHub repository:
+
+```tsx
+<a
+  href="https://github.com/kulterryan/who-to-bother-at-on-x"
+  rel="noopener noreferrer"
+  target="_blank"
+>
+  GitHub repository
+</a>
+```
+
+Contributors can see how their additions affect the overall statistics, providing motivation and transparency.
+
+## Performance Considerations
+
+<Steps>
+  <Step title="Build-Time Calculation">
+    Statistics are calculated during the build process, not at runtime
+  </Step>
+  
+  <Step title="Module-Level Caching">
+    Results are stored in a constant at module scope
+    
+    ```typescript
+    const stats = calculateStats();
+    ```
+  </Step>
+  
+  <Step title="Instant Page Load">
+    The stats page loads immediately with pre-calculated values
+  </Step>
+</Steps>
+
+<Info>
+  This approach means the stats page has near-zero performance overhead, even with hundreds of companies and thousands of contacts.
+</Info>
+
+## Example Statistics
+
+As of the current build, typical statistics might look like:
+
+- **35 Companies** - Major tech companies like Cloudflare, Vercel, Supabase
+- **150 People** - Unique X handles across all companies
+- **200 Contact Entries** - Total products/roles tracked
+
+<Note>
+  Your actual numbers will vary based on the current state of the directory. Visit `/stats` to see live counts.
+</Note>

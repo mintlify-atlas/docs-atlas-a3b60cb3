@@ -1,0 +1,175 @@
+---
+title: Search Functionality
+description: Learn how to search for companies and products using fuzzy search
+---
+
+Who To Bother features a powerful search system that helps you quickly find companies and products. The search functionality uses Fuse.js for fuzzy matching, allowing you to find results even with partial or slightly misspelled queries.
+
+## How Search Works
+
+The search system indexes both companies and products (contacts) from the directory. When you search, results are ranked by relevance across multiple fields.
+
+### Search Index Structure
+
+The search index contains two types of results:
+
+<CardGroup cols={2}>
+  <Card title="Company Results" icon="building">
+    Each company in the directory is indexed with its name and description
+  </Card>
+  <Card title="Product Results" icon="box">
+    Each product/contact is indexed with the product name, company name, and associated X handles
+  </Card>
+</CardGroup>
+
+### Weighted Search Fields
+
+Search queries are matched against multiple fields with different weights (defined in `src/lib/search.ts:76-84`):
+
+```typescript
+const fuse = new Fuse(searchIndex, {
+  keys: [
+    { name: "name", weight: 2 },           // Highest priority
+    { name: "description", weight: 1 },    // Standard priority
+    { name: "companyName", weight: 1.5 },  // High priority
+  ],
+  threshold: 0.4,
+  ignoreLocation: true,
+});
+```
+
+<Info>
+  The `threshold: 0.4` value means that results must be at least 60% similar to the search query to be included. Lower values would require more exact matches.
+</Info>
+
+## Using the Search Page
+
+<Steps>
+  <Step title="Navigate to Search">
+    Access the search page at `/search` or use the search link from the homepage
+  </Step>
+  
+  <Step title="Enter Your Query">
+    Type your search term in the input field. The search automatically updates as you type (throttled to 300ms)
+    
+    ```typescript
+    // From src/app/search.tsx:122-129
+    const [query, setQuery] = useQueryState(
+      "q",
+      parseAsString.withDefault("").withOptions({
+        limitUrlUpdates: throttle(300),
+        shallow: true,
+        history: "replace",
+      })
+    );
+    ```
+  </Step>
+  
+  <Step title="Review Results">
+    Results display with badges indicating whether they're a company or product. Each result shows:
+    - Name and type (Company or Product)
+    - Description
+    - Visual company logo (if available)
+  </Step>
+  
+  <Step title="Click to View Details">
+    Clicking any result takes you to the company page. Product results include a query parameter to filter and highlight the specific product
+  </Step>
+</Steps>
+
+## Search Result Types
+
+### Company Results
+
+When you click on a company result, you're taken to the full company page showing all contacts.
+
+```typescript
+// Search result structure for companies (src/lib/search.ts:41-48)
+{
+  type: "company",
+  id: company.id,
+  name: company.name,
+  description: company.description,
+  companyId: company.id,
+  companyName: company.name,
+}
+```
+
+### Product Results
+
+Product results link directly to the company page with the product name as a query parameter, automatically filtering and highlighting that specific contact.
+
+```typescript
+// Search result structure for products (src/lib/search.ts:56-64)
+{
+  type: "product",
+  id: `${company.id}-${product.name}`,
+  name: contact.product,
+  description: `${contact.product} at ${company.name}`,
+  companyId: company.id,
+  companyName: company.name,
+  handles: contact.handles,
+}
+```
+
+<Tip>
+  When you search for a product name like "API" and click a result, you'll be taken to that company's page with the search query pre-filled, showing only matching products.
+</Tip>
+
+## Deduplication
+
+The search system automatically removes duplicate products that have the same name within the same company (`src/lib/search.ts:98-110`):
+
+```typescript
+const seen = new Set<string>();
+const uniqueResults: SearchResult[] = [];
+
+for (const result of fuseResults) {
+  const item = result.item;
+  const key = `${item.type}-${item.companyId}-${item.name}`;
+
+  if (!seen.has(key)) {
+    seen.add(key);
+    uniqueResults.push(item);
+  }
+}
+```
+
+## URL Query Parameters
+
+Search queries are stored in the URL using the `q` parameter:
+
+- `/search?q=cloudflare` - Search for "cloudflare"
+- `/search?q=api` - Search for "api"
+
+<Note>
+  The URL updates automatically as you type (with a 300ms throttle), making it easy to share specific search results with others.
+</Note>
+
+## Empty States
+
+The search page handles different scenarios:
+
+**No query entered:**
+- Displays a search icon and prompt to enter a search term
+
+**No results found:**
+- Shows a friendly message: "No results found for '[query]'"
+- Suggests trying different keywords
+
+**Results found:**
+- Displays count: "Found X result(s) for '[query]'"
+- Lists all matching companies and products
+
+## Search Performance
+
+<Card title="Build-Time Indexing" icon="zap">
+  The search index is built once at module load time (not on every search), making searches extremely fast. All company JSON files are auto-discovered and indexed during the build process.
+</Card>
+
+```typescript
+// Index built once at module load (src/lib/search.ts:72-73)
+const searchIndex = buildSearchIndex();
+```
+
+This approach ensures that searches execute instantly without needing to rebuild the index for each query.

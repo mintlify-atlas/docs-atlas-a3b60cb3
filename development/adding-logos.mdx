@@ -1,0 +1,580 @@
+---
+title: "Adding Company Logos"
+description: "Learn how to add SVG logos to company pages with proper accessibility"
+---
+
+## Overview
+
+Company logos are stored as SVG components in `src/components/company-logos.tsx`. This guide shows you how to add a new logo with proper accessibility and styling.
+
+## Logo Requirements
+
+<Check>**SVG format** - Use SVG for scalability and styling flexibility</Check>
+<Check>**Accessible** - Include proper title and ARIA attributes</Check>
+<Check>**Responsive** - Set appropriate width and height</Check>
+<Check>**Theme-aware** - Support both light and dark modes</Check>
+
+## Adding a Logo
+
+<Steps>
+  <Step title="Open the company-logos.tsx file">
+    Navigate to `src/components/company-logos.tsx`
+    
+    ```bash
+    code src/components/company-logos.tsx
+    ```
+  </Step>
+
+  <Step title="Add your logo to the companyLogos object">
+    Add a new entry with your company's `logoType` as the key:
+    
+    ```typescript
+    export const companyLogos: Record<string, React.ReactNode> = {
+      // ... existing logos
+      yourcompany: (
+        <svg
+          aria-labelledby="yourcompany-logo-title"
+          className="text-zinc-900 dark:text-zinc-100"
+          height="30"
+          viewBox="0 0 100 100"
+          width="30"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <title id="yourcompany-logo-title">YourCompany</title>
+          <path fill="currentColor" d="..." />
+        </svg>
+      ),
+    };
+    ```
+  </Step>
+
+  <Step title="Test your logo">
+    Run the development server and navigate to your company page:
+    
+    ```bash
+    pnpm dev
+    ```
+    
+    Visit `http://localhost:3000/yourcompany` to see your logo.
+  </Step>
+</Steps>
+
+## Logo Template
+
+Use this template when adding a new logo:
+
+```typescript src/components/company-logos.tsx
+export const companyLogos: Record<string, React.ReactNode> = {
+  yourcompany: (
+    <svg
+      aria-labelledby="yourcompany-logo-title"
+      className="text-zinc-900 dark:text-zinc-100"
+      height="30"
+      viewBox="0 0 [width] [height]"
+      width="30"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <title id="yourcompany-logo-title">YourCompany</title>
+      {/* Your SVG paths here */}
+      <path fill="currentColor" d="..." />
+    </svg>
+  ),
+};
+```
+
+### Template Attributes
+
+<ResponseField name="aria-labelledby" type="string" required>
+  Links the SVG to its title for screen readers
+  
+  - Format: `"yourcompany-logo-title"`
+  - Must match the `id` in the `<title>` element
+</ResponseField>
+
+<ResponseField name="className" type="string" required>
+  Tailwind classes for theming
+  
+  - For logos that need theme support: `"text-zinc-900 dark:text-zinc-100"`
+  - For colored logos: Use specific color classes or omit
+</ResponseField>
+
+<ResponseField name="height" type="string" required>
+  Logo height in pixels
+  
+  - Standard: `"30"`
+  - Adjust if needed for visual balance
+</ResponseField>
+
+<ResponseField name="width" type="string" required>
+  Logo width in pixels
+  
+  - Standard: `"30"`
+  - Can be different from height for aspect ratio
+</ResponseField>
+
+<ResponseField name="viewBox" type="string" required>
+  SVG coordinate system
+  
+  - Format: `"0 0 [width] [height]"`
+  - Use the original SVG's viewBox values
+</ResponseField>
+
+<ResponseField name="xmlns" type="string" required>
+  XML namespace for SVG
+  
+  - Always: `"http://www.w3.org/2000/svg"`
+</ResponseField>
+
+## Real Examples
+
+Let's look at some real examples from the codebase:
+
+### Simple Logo (Vercel)
+
+A simple, theme-aware logo:
+
+```typescript src/components/company-logos.tsx
+vercel: (
+  <svg
+    className="text-zinc-900 dark:text-zinc-100"
+    height="30"
+    preserveAspectRatio="xMidYMid"
+    viewBox="0 0 256 222"
+    width="30"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <title>Vercel</title>
+    <path d="m128 0 128 221.705H0z" fill="currentColor" />
+  </svg>
+),
+```
+
+**Key features**:
+- Uses `fill="currentColor"` to inherit text color
+- Theme-aware with `text-zinc-900 dark:text-zinc-100`
+- Simple title without id (acceptable for simple cases)
+
+### Colored Logo (Cloudflare)
+
+A logo with specific colors:
+
+```typescript src/components/company-logos.tsx
+cloudflare: (
+  <svg
+    className="shrink-0 text-accent-100 transition-colors duration-200 ease-out"
+    fill="none"
+    height="30"
+    id="nav-logo-icon"
+    viewBox="0 0 66 30"
+    width="66"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <title>Cloudflare</title>
+    <path
+      className="transition-colors duration-400 ease-out"
+      d="M52.688 13.028c..."
+      fill="currentColor"
+    />
+  </svg>
+),
+```
+
+**Key features**:
+- Wider aspect ratio (66x30)
+- Uses specific color classes
+- Includes transition for smooth color changes
+
+### Multi-Color Logo (Mintlify)
+
+A logo with multiple colors and opacity:
+
+```typescript src/components/company-logos.tsx
+mintlify: (
+  <svg
+    className="text-zinc-600 dark:text-zinc-400"
+    fill="none"
+    height="30"
+    viewBox="0 0 19 19"
+    width="30"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <title>Mintlify</title>
+    <path
+      d="M18.367 7.28888V..."
+      fill="currentColor"
+      opacity="0.6"
+    />
+    <path
+      d="M4.83793 7.193C..."
+      fill="currentColor"
+    />
+  </svg>
+),
+```
+
+**Key features**:
+- Multiple paths with different opacities
+- Softer colors for a subtle look
+- All paths use `currentColor` for theme support
+
+### Logo with Dark Mode Variant (Better Auth)
+
+A logo that changes completely in dark mode:
+
+```typescript src/components/company-logos.tsx
+betterauth: (
+  <svg
+    fill="none"
+    height="40"
+    viewBox="0 0 500 500"
+    width="40"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <title>BetterAuth</title>
+    <path className="dark:fill-white" d="M0 0h500v500H0z" fill="black" />
+    <path
+      className="dark:fill-black"
+      d="M69 121h86.988v259H69z..."
+      fill="white"
+    />
+  </svg>
+),
+```
+
+**Key features**:
+- Different fill colors for light and dark modes
+- Uses `className` to switch colors
+- Inverted colors for contrast
+
+## Theme Support
+
+Most logos should support both light and dark themes. There are several approaches:
+
+### Approach 1: currentColor (Recommended)
+
+Use `currentColor` with theme-aware text colors:
+
+```typescript
+<svg className="text-zinc-900 dark:text-zinc-100">
+  <path fill="currentColor" d="..." />
+</svg>
+```
+
+**Pros**: Simple, consistent, works with Tailwind's color system
+
+**Cons**: All paths have the same color
+
+### Approach 2: Class-based Colors
+
+Use Tailwind classes directly on paths:
+
+```typescript
+<svg>
+  <path className="fill-zinc-900 dark:fill-zinc-100" d="..." />
+  <path className="fill-blue-500 dark:fill-blue-400" d="..." />
+</svg>
+```
+
+**Pros**: Different colors for different paths, full control
+
+**Cons**: More verbose, harder to maintain
+
+### Approach 3: Opacity Variations
+
+Use opacity with currentColor:
+
+```typescript
+<svg className="text-zinc-900 dark:text-zinc-100">
+  <path fill="currentColor" opacity="0.6" d="..." />
+  <path fill="currentColor" d="..." />
+</svg>
+```
+
+**Pros**: Creates depth while maintaining theme support
+
+**Cons**: Limited to opacity variations
+
+### Approach 4: Specific Colors
+
+Use specific colors that work in both modes:
+
+```typescript
+<svg>
+  <path fill="#00B4D8" d="..." />
+  <path fill="#0077B6" d="..." />
+</svg>
+```
+
+**Pros**: Brand-accurate colors
+
+**Cons**: May not look good in all themes
+
+<Warning>
+Test your logo in both light and dark modes to ensure good contrast and visibility.
+</Warning>
+
+## Sizing Guidelines
+
+### Standard Size
+
+Most logos use a standard 30x30 size:
+
+```typescript
+<svg height="30" width="30" viewBox="0 0 100 100">
+```
+
+### Wider Logos
+
+For horizontal logos, increase the width:
+
+```typescript
+<svg height="30" width="60" viewBox="0 0 200 100">
+```
+
+### Taller Logos
+
+For vertical logos, increase the height:
+
+```typescript
+<svg height="40" width="30" viewBox="0 0 100 150">
+```
+
+<Tip>
+Maintain the original aspect ratio by adjusting both width/height and viewBox proportionally.
+</Tip>
+
+## Accessibility
+
+### Title Element (Required)
+
+Every logo must have a `<title>` element:
+
+```typescript
+<svg aria-labelledby="yourcompany-logo-title">
+  <title id="yourcompany-logo-title">YourCompany</title>
+  {/* paths */}
+</svg>
+```
+
+The title:
+- Provides a text description for screen readers
+- Should be the company name
+- Must have an `id` that matches the `aria-labelledby` attribute
+
+### ARIA Attributes
+
+<ResponseField name="aria-labelledby" type="string" required>
+  Links the SVG to its title element
+  
+  ```typescript
+  aria-labelledby="yourcompany-logo-title"
+  ```
+</ResponseField>
+
+<ResponseField name="aria-hidden" type="boolean" optional>
+  Hides decorative logos from screen readers (use sparingly)
+  
+  ```typescript
+  aria-hidden="true"
+  ```
+  
+  Only use if the logo is purely decorative and the company name is shown in text nearby.
+</ResponseField>
+
+<ResponseField name="role" type="string" optional>
+  Specifies the element role
+  
+  ```typescript
+  role="img"
+  ```
+  
+  Usually not needed as `<svg>` has implicit role of `img`.
+</ResponseField>
+
+## Optimizing SVGs
+
+Before adding your logo, optimize it:
+
+<Steps>
+  <Step title="Remove unnecessary attributes">
+    Remove:
+    - `id` attributes (except on title)
+    - `class` attributes from original SVG
+    - `style` attributes
+    - XML comments
+    - Unnecessary `<g>` wrappers
+  </Step>
+
+  <Step title="Simplify paths">
+    Use tools like [SVGOMG](https://jakearchibald.github.io/svgomg/) to:
+    - Merge paths where possible
+    - Remove redundant points
+    - Round numbers to reduce file size
+  </Step>
+
+  <Step title="Use currentColor">
+    Replace hardcoded colors with `currentColor`:
+    
+    ```typescript
+    // Before
+    fill="#000000"
+    
+    // After
+    fill="currentColor"
+    ```
+  </Step>
+
+  <Step title="Test the result">
+    Make sure the optimized logo still looks correct.
+  </Step>
+</Steps>
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="Logo is too small/large">
+    **Issue**: Logo doesn't match the size of other logos
+    
+    **Fix**: Adjust the `width` and `height` attributes:
+    
+    ```typescript
+    // Standard size
+    <svg height="30" width="30">
+    
+    // Wider logo
+    <svg height="30" width="60">
+    
+    // Taller logo
+    <svg height="40" width="30">
+    ```
+  </Accordion>
+
+  <Accordion title="Logo is clipped or has extra space">
+    **Issue**: The `viewBox` doesn't match the logo's actual bounds
+    
+    **Fix**: Use the original SVG's `viewBox` values or calculate the correct bounds:
+    
+    ```typescript
+    // The viewBox defines the coordinate system
+    // Format: "minX minY width height"
+    viewBox="0 0 100 100"
+    ```
+  </Accordion>
+
+  <Accordion title="Logo doesn't support dark mode">
+    **Issue**: Logo uses hardcoded colors that don't work in dark mode
+    
+    **Fix**: Use one of the theme support approaches:
+    
+    ```typescript
+    // Option 1: currentColor with theme classes
+    <svg className="text-zinc-900 dark:text-zinc-100">
+      <path fill="currentColor" />
+    </svg>
+    
+    // Option 2: Class-based colors
+    <svg>
+      <path className="fill-zinc-900 dark:fill-zinc-100" />
+    </svg>
+    ```
+  </Accordion>
+
+  <Accordion title="Logo is not accessible">
+    **Issue**: Screen readers can't identify the logo
+    
+    **Fix**: Add proper title and ARIA attributes:
+    
+    ```typescript
+    <svg aria-labelledby="yourcompany-logo-title">
+      <title id="yourcompany-logo-title">YourCompany</title>
+      {/* paths */}
+    </svg>
+    ```
+  </Accordion>
+
+  <Accordion title="Logo type doesn't match">
+    **Issue**: The key in `companyLogos` doesn't match the `logoType` in your JSON
+    
+    **Fix**: Make sure they match exactly:
+    
+    ```json company.json
+    {
+      "logoType": "yourcompany"
+    }
+    ```
+    
+    ```typescript company-logos.tsx
+    export const companyLogos: Record<string, React.ReactNode> = {
+      yourcompany: (/* ... */),
+    };
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Testing Your Logo
+
+<Steps>
+  <Step title="Test in light mode">
+    Check that your logo is visible and looks good in light mode.
+  </Step>
+
+  <Step title="Test in dark mode">
+    Switch to dark mode and verify the logo still looks good.
+  </Step>
+
+  <Step title="Test at different sizes">
+    Zoom in and out to make sure the logo scales well.
+  </Step>
+
+  <Step title="Test with screen reader">
+    Use a screen reader to verify the logo is properly announced.
+  </Step>
+</Steps>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use SVG format" icon="vector-square">
+    SVG scales perfectly and can be styled with CSS
+  </Card>
+  
+  <Card title="Support dark mode" icon="moon">
+    Make sure your logo works in both light and dark themes
+  </Card>
+  
+  <Card title="Keep it simple" icon="minimize">
+    Remove unnecessary elements and optimize paths
+  </Card>
+  
+  <Card title="Add accessibility" icon="universal-access">
+    Always include title and ARIA attributes
+  </Card>
+  
+  <Card title="Use currentColor" icon="palette">
+    Let the logo inherit text color for consistency
+  </Card>
+  
+  <Card title="Match the size" icon="ruler">
+    Keep logos a consistent size (usually 30x30)
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+After adding your logo:
+
+1. Make sure the `logoType` in your company JSON matches the key in `company-logos.tsx`
+2. Run `pnpm dev` and navigate to your company page
+3. Test in both light and dark modes
+4. Test with a screen reader
+5. Submit your Pull Request
+
+<CardGroup cols={2}>
+  <Card title="Adding Companies" icon="building" href="/development/adding-companies">
+    Learn how to create company JSON files
+  </Card>
+  
+  <Card title="Schema Validation" icon="check" href="/development/schema-validation">
+    Understand how validation works
+  </Card>
+</CardGroup>

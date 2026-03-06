@@ -1,0 +1,537 @@
+---
+title: "Schema Validation"
+description: "Understanding how Valibot validates company data to ensure data integrity"
+---
+
+## Overview
+
+Who To Bother uses [Valibot](https://valibot.dev) for runtime validation of all company JSON files. This ensures data integrity and provides helpful error messages when validation fails.
+
+## Why Valibot?
+
+Valibot is a modern schema validation library that provides:
+
+- **Type Safety**: TypeScript types are inferred directly from the schema
+- **Runtime Validation**: Validates data at build time and runtime
+- **Single Source of Truth**: One schema definition for both validation and types
+- **JSON Schema Generation**: Auto-generate JSON Schema for IDE support
+- **Detailed Error Messages**: Clear, actionable error messages
+
+<Note>
+The build will fail if any JSON file fails validation, preventing deployment of invalid data.
+</Note>
+
+## Schema Definition
+
+The Valibot schema is defined in `src/data/companies/schema.ts`:
+
+```typescript src/data/companies/schema.ts
+import {
+  array,
+  email,
+  type InferOutput,
+  minLength,
+  object,
+  optional,
+  pipe,
+  regex,
+  string,
+  url,
+} from "valibot";
+
+// Contact schema - represents a single contact with product/role and handles
+export const ContactSchema = object({
+  product: pipe(string(), minLength(1, "Product name is required")),
+  handles: pipe(
+    array(
+      pipe(
+        string(),
+        regex(
+          /^@[a-zA-Z0-9_]+$/,
+          "Handle must start with @ and contain only letters, numbers, and underscores"
+        )
+      )
+    ),
+    minLength(1, "At least one handle is required")
+  ),
+  email: optional(pipe(string(), email("Must be a valid email address"))),
+  discord: optional(pipe(string(), url("Must be a valid URL"))),
+});
+
+// Category schema - represents a category of contacts
+export const CategorySchema = object({
+  name: pipe(string(), minLength(1, "Category name is required")),
+  contacts: pipe(
+    array(ContactSchema),
+    minLength(1, "At least one contact is required per category")
+  ),
+});
+
+// Company schema - represents a complete company with all contact information
+export const CompanySchema = object({
+  $schema: optional(string()),
+  id: pipe(
+    string(),
+    minLength(1, "Company ID is required"),
+    regex(
+      /^[a-z0-9-]+$/,
+      "Company ID must be lowercase with only letters, numbers, and hyphens"
+    )
+  ),
+  name: pipe(string(), minLength(1, "Company name is required")),
+  description: pipe(string(), minLength(1, "Company description is required")),
+  logoType: pipe(string(), minLength(1, "Logo type is required")),
+  logo: optional(string()),
+  website: optional(pipe(string(), url("Must be a valid URL"))),
+  docs: optional(pipe(string(), url("Must be a valid URL"))),
+  github: optional(pipe(string(), url("Must be a valid URL"))),
+  discord: optional(pipe(string(), url("Must be a valid URL"))),
+  categories: pipe(
+    array(CategorySchema),
+    minLength(1, "At least one category is required")
+  ),
+});
+
+// Infer TypeScript types from schemas
+export type Contact = InferOutput<typeof ContactSchema>;
+export type Category = InferOutput<typeof CategorySchema>;
+export type Company = InferOutput<typeof CompanySchema>;
+```
+
+## Validation Rules
+
+The schema enforces the following validation rules:
+
+### Contact Validation
+
+<ResponseField name="product" type="string" required>
+  Must be a non-empty string
+  
+  ```typescript
+  pipe(string(), minLength(1, "Product name is required"))
+  ```
+</ResponseField>
+
+<ResponseField name="handles" type="array" required>
+  - Must be an array with at least one handle
+  - Each handle must start with `@`
+  - Can only contain letters, numbers, and underscores
+  - No spaces or special characters (except `_`)
+  
+  ```typescript
+  pipe(
+    array(
+      pipe(
+        string(),
+        regex(/^@[a-zA-Z0-9_]+$/, "Handle must start with @ and contain only letters, numbers, and underscores")
+      )
+    ),
+    minLength(1, "At least one handle is required")
+  )
+  ```
+  
+  **Valid examples**: `@timneutkens`, `@shadcn`, `@user_123`
+  
+  **Invalid examples**: `timneutkens` (missing @), `@user name` (space), `@user-name` (hyphen)
+</ResponseField>
+
+<ResponseField name="email" type="string" optional>
+  Optional field that must be a valid email format if provided
+  
+  ```typescript
+  optional(pipe(string(), email("Must be a valid email address")))
+  ```
+</ResponseField>
+
+<ResponseField name="discord" type="string" optional>
+  Optional field that must be a valid URL if provided
+  
+  ```typescript
+  optional(pipe(string(), url("Must be a valid URL")))
+  ```
+</ResponseField>
+
+### Category Validation
+
+<ResponseField name="name" type="string" required>
+  Must be a non-empty string
+  
+  ```typescript
+  pipe(string(), minLength(1, "Category name is required"))
+  ```
+</ResponseField>
+
+<ResponseField name="contacts" type="array" required>
+  Must be an array with at least one contact
+  
+  ```typescript
+  pipe(
+    array(ContactSchema),
+    minLength(1, "At least one contact is required per category")
+  )
+  ```
+</ResponseField>
+
+### Company Validation
+
+<ResponseField name="id" type="string" required>
+  - Must be a non-empty string
+  - Can only contain lowercase letters, numbers, and hyphens
+  - No uppercase, spaces, or special characters (except hyphen)
+  
+  ```typescript
+  pipe(
+    string(),
+    minLength(1, "Company ID is required"),
+    regex(
+      /^[a-z0-9-]+$/,
+      "Company ID must be lowercase with only letters, numbers, and hyphens"
+    )
+  )
+  ```
+  
+  **Valid examples**: `vercel`, `tanstack`, `google-ai-studio`
+  
+  **Invalid examples**: `Vercel` (uppercase), `tan_stack` (underscore)
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Must be a non-empty string (can contain any characters)
+  
+  ```typescript
+  pipe(string(), minLength(1, "Company name is required"))
+  ```
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Must be a non-empty string
+  
+  ```typescript
+  pipe(string(), minLength(1, "Company description is required"))
+  ```
+</ResponseField>
+
+<ResponseField name="logoType" type="string" required>
+  Must be a non-empty string that matches a key in `company-logos.tsx`
+  
+  ```typescript
+  pipe(string(), minLength(1, "Logo type is required"))
+  ```
+</ResponseField>
+
+<ResponseField name="categories" type="array" required>
+  Must be an array with at least one category
+  
+  ```typescript
+  pipe(
+    array(CategorySchema),
+    minLength(1, "At least one category is required")
+  )
+  ```
+</ResponseField>
+
+<ResponseField name="website, docs, github, discord" type="string" optional>
+  Optional fields that must be valid URLs if provided
+  
+  ```typescript
+  optional(pipe(string(), url("Must be a valid URL")))
+  ```
+</ResponseField>
+
+## Validation Script
+
+The validation script (`src/scripts/validate-companies.ts`) validates all company JSON files:
+
+```typescript src/scripts/validate-companies.ts
+#!/usr/bin/env tsx
+
+import { readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parse, ValiError } from "valibot";
+import { CompanySchema } from "../data/companies/schema.js";
+
+const COMPANIES_DIR = join(__dirname, "../data/companies");
+const EXCLUDE_FILES = ["schema.json", "example.json.template"];
+
+/**
+ * Validates a single company file
+ */
+function validateFile(file: string): ValidationResult {
+  const filePath = join(COMPANIES_DIR, file);
+  const result: ValidationResult = {
+    file,
+    success: false,
+  };
+
+  try {
+    const content = readFileSync(filePath, "utf-8");
+    const data = JSON.parse(content);
+    parse(CompanySchema, data);
+    result.success = true;
+    console.log(`✅ ${file}`);
+  } catch (error) {
+    result.success = false;
+    result.errors = formatValidationError(error);
+    console.log(`❌ ${file}`);
+    if (result.errors) {
+      for (const err of result.errors) {
+        console.log(err);
+      }
+    }
+  }
+
+  return result;
+}
+```
+
+### Running Validation
+
+Validate all company files with:
+
+```bash
+pnpm validate
+```
+
+The script will:
+
+1. Read all `.json` files from `src/data/companies/`
+2. Exclude `schema.json` and `example.json.template`
+3. Validate each file against the Valibot schema
+4. Print results with checkmarks (✅) for valid files and crosses (❌) for invalid files
+5. Show detailed error messages for any validation failures
+6. Exit with code 1 if any files fail validation (prevents builds)
+
+### Example Output
+
+<CodeGroup>
+```bash Success
+🔍 Validating company JSON files...
+
+✅ vercel.json
+✅ tanstack.json
+✅ cloudflare.json
+✅ supabase.json
+
+==================================================
+
+📊 Validation Summary:
+   Total files: 4
+   ✅ Passed: 4
+   ❌ Failed: 0
+
+✅ All company JSON files are valid!
+```
+
+```bash Failure
+🔍 Validating company JSON files...
+
+✅ vercel.json
+❌ yourcompany.json
+  - handles.0: Handle must start with @ and contain only letters, numbers, and underscores
+  - id: Company ID must be lowercase with only letters, numbers, and hyphens
+✅ cloudflare.json
+
+==================================================
+
+📊 Validation Summary:
+   Total files: 3
+   ✅ Passed: 2
+   ❌ Failed: 1
+
+❌ Validation failed! Please fix the errors above.
+```
+</CodeGroup>
+
+## JSON Schema Generation
+
+A JSON Schema is automatically generated from the Valibot schema for IDE support:
+
+```bash
+pnpm generate-schema
+```
+
+This generates `src/data/companies/schema.json` from the Valibot schema using `@valibot/to-json-schema`.
+
+### IDE Autocomplete
+
+To enable IDE autocomplete, add the `$schema` property to your company JSON files:
+
+```json
+{
+  "$schema": "./schema.json",
+  "id": "yourcompany",
+  ...
+}
+```
+
+This provides:
+
+- **Autocomplete**: Suggestions as you type
+- **Inline validation**: Red squiggly lines for errors
+- **Hover documentation**: Tooltips with field descriptions
+- **Error messages**: Detailed error messages before you run validation
+
+<Tip>
+Most modern IDEs (VS Code, WebStorm, etc.) automatically recognize the `$schema` property and provide validation and autocomplete.
+</Tip>
+
+## Build-Time Validation
+
+Validation runs automatically during the build process:
+
+```bash
+pnpm build
+```
+
+The build script includes validation as a prebuild step:
+
+```json package.json
+{
+  "scripts": {
+    "build": "pnpm validate && vite build && tsc --noEmit"
+  }
+}
+```
+
+If validation fails, the build will fail and no files will be deployed.
+
+<Warning>
+**The build will fail if any JSON file fails validation**. This prevents deployment of invalid data.
+</Warning>
+
+## Type Safety
+
+TypeScript types are inferred directly from the Valibot schema:
+
+```typescript
+import type { Company, Category, Contact } from "./schema";
+
+// These types are automatically inferred from the Valibot schema
+// No need to maintain separate type definitions!
+```
+
+This ensures that:
+
+- TypeScript types always match the runtime validation
+- No duplication between types and validation
+- Single source of truth for data structure
+
+## Common Validation Errors
+
+<AccordionGroup>
+  <Accordion title="Handle format errors">
+    **Error**: `Handle must start with @ and contain only letters, numbers, and underscores`
+    
+    **Cause**: Handle doesn't start with `@` or contains invalid characters
+    
+    **Fix**: Ensure all handles:
+    - Start with `@`
+    - Contain only letters, numbers, and underscores
+    - No spaces, hyphens, or other special characters
+    
+    ```json
+    // ❌ Wrong
+    "handles": ["timneutkens", "@user name", "@user-name"]
+    
+    // ✅ Correct
+    "handles": ["@timneutkens", "@user_name"]
+    ```
+  </Accordion>
+
+  <Accordion title="Company ID format errors">
+    **Error**: `Company ID must be lowercase with only letters, numbers, and hyphens`
+    
+    **Cause**: Company ID contains uppercase letters or invalid characters
+    
+    **Fix**: Use only lowercase letters, numbers, and hyphens:
+    
+    ```json
+    // ❌ Wrong
+    "id": "YourCompany", "id": "your_company"
+    
+    // ✅ Correct
+    "id": "yourcompany", "id": "your-company"
+    ```
+  </Accordion>
+
+  <Accordion title="Missing required fields">
+    **Error**: `Company ID is required` (or other field name)
+    
+    **Cause**: A required field is missing
+    
+    **Fix**: Ensure all required fields are present:
+    - `id`, `name`, `description`, `logoType`
+    - At least one `category` with `name` and `contacts`
+    - Each contact must have `product` and `handles`
+  </Accordion>
+
+  <Accordion title="Empty arrays">
+    **Error**: `At least one handle is required` or `At least one contact is required per category`
+    
+    **Cause**: Required arrays are empty
+    
+    **Fix**: Ensure:
+    - Each contact has at least one handle
+    - Each category has at least one contact
+    - The company has at least one category
+  </Accordion>
+
+  <Accordion title="Invalid email format">
+    **Error**: `Must be a valid email address`
+    
+    **Cause**: Email field doesn't match email format
+    
+    **Fix**: Use a valid email format:
+    
+    ```json
+    // ❌ Wrong
+    "email": "not-an-email"
+    
+    // ✅ Correct
+    "email": "support@company.com"
+    ```
+  </Accordion>
+
+  <Accordion title="Invalid URL format">
+    **Error**: `Must be a valid URL`
+    
+    **Cause**: URL fields don't match URL format
+    
+    **Fix**: Use complete, valid URLs:
+    
+    ```json
+    // ❌ Wrong
+    "website": "company.com"
+    
+    // ✅ Correct
+    "website": "https://company.com"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use IDE autocomplete" icon="lightbulb">
+    Add `"$schema": "./schema.json"` to enable IDE validation and autocomplete
+  </Card>
+  
+  <Card title="Validate early and often" icon="check">
+    Run `pnpm validate` frequently while editing to catch errors early
+  </Card>
+  
+  <Card title="Read error messages" icon="book">
+    Valibot provides detailed, actionable error messages - read them carefully
+  </Card>
+  
+  <Card title="Test locally" icon="flask">
+    Always test with `pnpm dev` after validation passes
+  </Card>
+</CardGroup>
+
+## Further Reading
+
+- [Valibot Documentation](https://valibot.dev)
+- [Valibot Schema API](https://valibot.dev/guides/schemas/)
+- [Valibot Pipelines](https://valibot.dev/guides/pipelines/)

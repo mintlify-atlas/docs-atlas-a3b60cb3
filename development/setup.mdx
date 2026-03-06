@@ -1,0 +1,200 @@
+---
+title: "Local Development Setup"
+description: "Get started with developing Who To Bother locally on your machine"
+---
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- **Node.js** (v18 or later)
+- **pnpm** (v10.15.1 or later)
+- **Git** for cloning the repository
+
+## Installation
+
+<Steps>
+  <Step title="Fork and clone the repository">
+    Fork the repository on GitHub, then clone your fork locally:
+    
+    ```bash
+    git clone https://github.com/YOUR-USERNAME/who-to-bother-on-x.git
+    cd who-to-bother-on-x
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Install all project dependencies using pnpm:
+    
+    ```bash
+    pnpm install
+    ```
+    
+    This will install all required packages including:
+    - React 19 with TypeScript
+    - TanStack Start for routing
+    - Valibot for schema validation
+    - Tailwind CSS for styling
+  </Step>
+
+  <Step title="Start the development server">
+    Run the development server:
+    
+    ```bash
+    pnpm dev
+    ```
+    
+    The application will be available at `http://localhost:3000`
+  </Step>
+
+  <Step title="Verify the setup">
+    Open your browser and navigate to `http://localhost:3000`. You should see the Who To Bother homepage with the list of companies.
+  </Step>
+</Steps>
+
+## Available Scripts
+
+The project includes several npm scripts for development and maintenance:
+
+<CodeGroup>
+```bash Development
+# Start development server with hot reload
+pnpm dev
+
+# The predev hook automatically runs:
+# - Favicon generation (tsx src/scripts/generate-favicons.ts)
+# - Sitemap generation (tsx src/scripts/generate-sitemap.ts)
+```
+
+```bash Build
+# Build for production
+pnpm build
+
+# The prebuild hook automatically runs:
+# - Favicon generation
+# - Sitemap generation
+# - Schema validation (pnpm validate)
+# Then builds with Vite and runs TypeScript type checking
+```
+
+```bash Validation
+# Validate all company JSON files
+pnpm validate
+
+# Generate JSON Schema from Valibot schema
+pnpm generate-schema
+```
+
+```bash Deployment
+# Deploy to Cloudflare Pages
+pnpm deploy
+
+# Runs build first, then deploys with Wrangler
+```
+</CodeGroup>
+
+## Project Structure
+
+Understanding the project structure will help you navigate the codebase:
+
+```
+src/
+├── app/                 # Routes and pages (TanStack Start)
+├── components/          # Reusable React components
+├── data/               # Company data and schemas
+│   └── companies/      # Individual company JSON files
+│       ├── schema.ts   # Valibot schema definition
+│       ├── schema.json # Generated JSON Schema
+│       └── *.json      # Company data files
+├── scripts/            # Build and validation scripts
+│   ├── validate-companies.ts
+│   ├── generate-json-schema.ts
+│   ├── generate-favicons.ts
+│   └── generate-sitemap.ts
+└── types/              # TypeScript type definitions
+```
+
+## Development Workflow
+
+<Note>
+The application automatically discovers all company JSON files in `src/data/companies/` at build time. When you add a new company JSON file, it will automatically be available as a route without needing to manually import it.
+</Note>
+
+### Making Changes
+
+1. **Edit company data**: Modify JSON files in `src/data/companies/`
+2. **Update components**: Edit React components in `src/components/`
+3. **Add new routes**: Create new files in `src/app/`
+4. **Validate changes**: Run `pnpm validate` to check your changes
+5. **Test locally**: Use `pnpm dev` to test your changes
+
+### Hot Reload
+
+The development server supports hot module replacement (HMR). Changes to most files will be reflected immediately without needing to refresh the browser.
+
+<Tip>
+If you're working on company data, keep `pnpm dev` running in one terminal and `pnpm validate` in another to catch validation errors as you work.
+</Tip>
+
+## Tech Stack
+
+Who To Bother is built with modern web technologies:
+
+- **Frontend**: React 19 with TypeScript
+- **Routing**: TanStack Start
+- **Styling**: Tailwind CSS v4
+- **Validation**: Valibot for runtime validation
+- **Build Tool**: Vite (with Rolldown)
+- **Deployment**: Cloudflare Pages
+- **Package Manager**: pnpm
+
+## Troubleshooting
+
+<Accordion title="Port 3000 is already in use">
+  If port 3000 is already in use, you can specify a different port:
+  
+  ```bash
+  PORT=3001 pnpm dev
+  ```
+</Accordion>
+
+<Accordion title="pnpm install fails">
+  Make sure you're using the correct version of pnpm (10.15.1+):
+  
+  ```bash
+  pnpm --version
+  
+  # If you need to upgrade:
+  npm install -g pnpm@latest
+  ```
+</Accordion>
+
+<Accordion title="Build fails with TypeScript errors">
+  Run the TypeScript compiler to see detailed errors:
+  
+  ```bash
+  npx tsc --noEmit
+  ```
+  
+  Fix any type errors before building.
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Add a Company" icon="building" href="/development/adding-companies">
+    Learn how to add new company data to the directory
+  </Card>
+  
+  <Card title="Schema Validation" icon="check" href="/development/schema-validation">
+    Understand how Valibot validates company data
+  </Card>
+  
+  <Card title="Add Logos" icon="image" href="/development/adding-logos">
+    Learn how to add company logos to the UI
+  </Card>
+  
+  <Card title="Contributing" icon="code-pull-request" href="/community/contributing">
+    Read the full contributing guide
+  </Card>
+</CardGroup>

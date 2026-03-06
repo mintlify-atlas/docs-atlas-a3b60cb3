@@ -1,0 +1,369 @@
+---
+title: "Adding Companies"
+description: "Step-by-step guide to adding new company data to the directory"
+---
+
+## Overview
+
+Adding a new company to Who To Bother involves creating a JSON file with contact information, adding the company logo, and validating the data. This guide walks you through each step.
+
+## Quick Start
+
+<Steps>
+  <Step title="Create the JSON file">
+    Create a new file in `src/data/companies/` with your company's name (lowercase, hyphenated):
+    
+    ```bash
+    touch src/data/companies/yourcompany.json
+    ```
+  </Step>
+
+  <Step title="Add company data">
+    Populate the file with your company's information following the schema structure.
+  </Step>
+
+  <Step title="Add the logo">
+    Add your company's SVG logo to `src/components/company-logos.tsx`
+  </Step>
+
+  <Step title="Validate and test">
+    Run validation and test locally:
+    
+    ```bash
+    pnpm validate
+    pnpm dev
+    ```
+  </Step>
+</Steps>
+
+## Company JSON Structure
+
+Each company is represented by a JSON file following this structure:
+
+```json src/data/companies/yourcompany.json
+{
+  "$schema": "./schema.json",
+  "id": "yourcompany",
+  "name": "Your Company",
+  "description": "Brief description of what your company does",
+  "logoType": "yourcompany",
+  "categories": [
+    {
+      "name": "Category Name",
+      "contacts": [
+        {
+          "product": "Product or Role",
+          "handles": ["@twitter_handle"],
+          "email": "contact@example.com"
+        }
+      ]
+    }
+  ]
+}
+```
+
+<Note>
+The `$schema` property enables IDE autocomplete and validation hints. Always include it at the top of your JSON file.
+</Note>
+
+## Field Descriptions
+
+### Required Fields
+
+<ResponseField name="id" type="string" required>
+  Unique identifier for the company (lowercase, alphanumeric with hyphens only)
+  
+  - Must match the filename (without `.json`)
+  - Used to generate the route: `/yourcompany`
+  - Example: `"vercel"`, `"tanstack"`, `"google-ai-studio"`
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  The display name of the company
+  
+  - This is what users will see in the UI
+  - Can include spaces and proper capitalization
+  - Example: `"Vercel"`, `"TanStack"`, `"Google AI Studio"`
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Brief description of what the company does
+  
+  - Keep it concise (1-2 sentences)
+  - Helps users understand what the company offers
+  - Example: `"Frontend cloud platform for deploying web applications"`
+</ResponseField>
+
+<ResponseField name="logoType" type="string" required>
+  Key used to lookup the logo in `company-logos.tsx`
+  
+  - Must match a key in the `companyLogos` object
+  - Usually the same as the `id` field
+  - Example: `"vercel"`, `"tanstack"`
+</ResponseField>
+
+<ResponseField name="categories" type="array" required>
+  Array of category objects grouping related contacts
+  
+  - At least one category is required
+  - Each category groups contacts by product, team, or area
+  - Example categories: `"Frameworks & OSS"`, `"Vercel products"`, `"v0 & AI"`
+</ResponseField>
+
+### Category Structure
+
+<ResponseField name="name" type="string" required>
+  The name of the category
+  
+  - Groups related contacts together
+  - Examples: `"Engineering"`, `"Support"`, `"Community"`
+</ResponseField>
+
+<ResponseField name="contacts" type="array" required>
+  Array of contact objects
+  
+  - At least one contact is required per category
+  - Each contact represents a person or team
+</ResponseField>
+
+### Contact Structure
+
+<ResponseField name="product" type="string" required>
+  The product, role, or area this contact is responsible for
+  
+  - Examples: `"Next.js"`, `"Customer Support"`, `"Community Manager"`
+</ResponseField>
+
+<ResponseField name="handles" type="array" required>
+  Array of Twitter/X handles
+  
+  - Must start with `@`
+  - Can only contain letters, numbers, and underscores
+  - At least one handle is required
+  - Example: `["@timneutkens"]`, `["@shadcn", "@rauchg"]`
+</ResponseField>
+
+<ResponseField name="email" type="string" optional>
+  Email address for contact (optional)
+  
+  - Must be a valid email format
+  - Only include publicly available emails
+  - Example: `"support@company.com"`
+</ResponseField>
+
+<ResponseField name="discord" type="string" optional>
+  Discord invite URL (optional)
+  
+  - Must be a valid URL
+  - Example: `"https://discord.gg/yourserver"`
+</ResponseField>
+
+### Optional Company Fields
+
+<ResponseField name="logo" type="string" optional>
+  URL to external logo image (optional)
+  
+  - Alternative to using `logoType`
+  - Must be a valid URL
+</ResponseField>
+
+<ResponseField name="website" type="string" optional>
+  Company website URL (optional)
+  
+  - Must be a valid URL
+  - Example: `"https://vercel.com"`
+</ResponseField>
+
+<ResponseField name="docs" type="string" optional>
+  Documentation URL (optional)
+  
+  - Must be a valid URL
+  - Example: `"https://nextjs.org/docs"`
+</ResponseField>
+
+<ResponseField name="github" type="string" optional>
+  GitHub organization or repository URL (optional)
+  
+  - Must be a valid URL
+  - Example: `"https://github.com/vercel"`
+</ResponseField>
+
+<ResponseField name="discord" type="string" optional>
+  Discord server invite URL (optional)
+  
+  - Must be a valid URL
+  - Example: `"https://discord.gg/vercel"`
+</ResponseField>
+
+## Real Example
+
+Here's a real example from the Vercel company file:
+
+```json src/data/companies/vercel.json
+{
+  "$schema": "./schema.json",
+  "id": "vercel",
+  "name": "Vercel",
+  "description": "Frontend cloud platform for deploying web applications",
+  "logoType": "vercel",
+  "categories": [
+    {
+      "name": "Frameworks & OSS",
+      "contacts": [
+        { "product": "Next.js", "handles": ["@timneutkens"] },
+        { "product": "Turbopack", "handles": ["@timneutkens"] },
+        { "product": "Turborepo", "handles": ["@anthonysheww"] },
+        { "product": "shadcn/ui", "handles": ["@shadcn"] }
+      ]
+    },
+    {
+      "name": "Vercel products",
+      "contacts": [
+        { "product": "Domains", "handles": ["@RhysSullivan", "@ethanniser"] },
+        { "product": "Functions / Runtime / Compute", "handles": ["@tomlienard", "@dglsparsons"] },
+        { "product": "Image Optimization", "handles": ["@styfle"] }
+      ]
+    }
+  ]
+}
+```
+
+## Best Practices
+
+<Tip>
+**Organize contacts logically**: Group contacts by product area, team, or function to make it easier for users to find the right person.
+</Tip>
+
+### Handles and Emails
+
+<Warning>
+**Only include public contact information**: Make sure all Twitter/X handles and email addresses are publicly available or you have explicit permission to include them.
+</Warning>
+
+- **Handles**: Only include people who are comfortable being contacted
+- **Email addresses**: Only include publicly available emails (from websites, public profiles, etc.)
+- **Verify accuracy**: Double-check that handles are correct and active
+
+### Descriptions
+
+- Keep descriptions concise and informative
+- Focus on what the company does, not marketing speak
+- Examples:
+  - Good: `"Frontend cloud platform for deploying web applications"`
+  - Bad: `"The world's best and most innovative cloud platform that revolutionizes..."`
+
+### Categories
+
+- Use clear, descriptive category names
+- Group related contacts together
+- Common categories:
+  - By product: `"Next.js"`, `"v0 & AI"`
+  - By team: `"Engineering"`, `"Support"`
+  - By area: `"Community"`, `"OSS Projects"`
+
+## Validation
+
+Before submitting your changes, validate your JSON file:
+
+```bash
+pnpm validate
+```
+
+The validation script will check:
+
+<Check>All required fields are present</Check>
+<Check>Twitter/X handles follow the correct format (`@username`)</Check>
+<Check>Email addresses are valid (if provided)</Check>
+<Check>URLs are valid (if provided)</Check>
+<Check>Company ID uses only lowercase letters, numbers, and hyphens</Check>
+<Check>At least one category and contact per company</Check>
+
+### Common Validation Errors
+
+<Accordion title="Invalid handle format">
+  **Error**: `Handle must start with @ and contain only letters, numbers, and underscores`
+  
+  **Solution**: Make sure all handles start with `@` and don't contain spaces or special characters:
+  
+  ```json
+  // ❌ Wrong
+  "handles": ["timneutkens", "@user name", "@user-name"]
+  
+  // ✅ Correct
+  "handles": ["@timneutkens", "@username"]
+  ```
+</Accordion>
+
+<Accordion title="Missing required fields">
+  **Error**: `Company ID is required` or similar
+  
+  **Solution**: Make sure all required fields are present:
+  - `id`
+  - `name`
+  - `description`
+  - `logoType`
+  - `categories` (with at least one category)
+  - Each category must have `name` and `contacts`
+  - Each contact must have `product` and `handles`
+</Accordion>
+
+<Accordion title="Invalid email format">
+  **Error**: `Must be a valid email address`
+  
+  **Solution**: Check that email addresses are properly formatted:
+  
+  ```json
+  // ❌ Wrong
+  "email": "not-an-email"
+  
+  // ✅ Correct
+  "email": "support@company.com"
+  ```
+</Accordion>
+
+<Accordion title="Invalid company ID">
+  **Error**: `Company ID must be lowercase with only letters, numbers, and hyphens`
+  
+  **Solution**: Use lowercase letters, numbers, and hyphens only:
+  
+  ```json
+  // ❌ Wrong
+  "id": "YourCompany", "id": "your_company"
+  
+  // ✅ Correct
+  "id": "yourcompany", "id": "your-company"
+  ```
+</Accordion>
+
+## Testing Locally
+
+After creating your company file, test it locally:
+
+```bash
+pnpm dev
+```
+
+Navigate to `http://localhost:3000/yourcompany` to see your company page.
+
+<Note>
+The company ID (filename without `.json`) becomes the route path automatically.
+</Note>
+
+## Next Steps
+
+Once you've created your company JSON file:
+
+1. [Add your company logo](/development/adding-logos) to `company-logos.tsx`
+2. Validate your changes with `pnpm validate`
+3. Test locally with `pnpm dev`
+4. Submit a Pull Request
+
+<CardGroup cols={2}>
+  <Card title="Add Logos" icon="image" href="/development/adding-logos">
+    Learn how to add your company logo
+  </Card>
+  
+  <Card title="Schema Validation" icon="check" href="/development/schema-validation">
+    Deep dive into schema validation
+  </Card>
+</CardGroup>

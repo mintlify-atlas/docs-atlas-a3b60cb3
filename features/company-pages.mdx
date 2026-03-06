@@ -1,0 +1,292 @@
+---
+title: Company Pages
+description: Understanding company page structure, navigation, and contact filtering
+---
+
+Each company in Who To Bother has a dedicated page displaying all available contacts organized by category. Company pages are dynamically generated from JSON files in the `data/companies/` directory.
+
+## Page Structure
+
+Company pages follow the route pattern `/$company` where the company parameter matches the company's unique ID.
+
+### Dynamic Route Configuration
+
+The company page route is defined in `src/app/$company.tsx` with automatic data loading:
+
+```typescript
+export const Route = createFileRoute("/$company")({
+  loader: ({ params }) => {
+    const { company } = params;
+    const companyDataMap = getCompanyDataMap();
+    const companyData = companyDataMap[company];
+
+    if (!companyData) {
+      throw new Error(`Company "${company}" not found`);
+    }
+
+    return companyData;
+  },
+  component: CompanyPage,
+});
+```
+
+<Info>
+  Company data is loaded at build time using Vite's `import.meta.glob`, which auto-discovers all JSON files in the companies directory.
+</Info>
+
+## Page Components
+
+### Header Section
+
+The page header displays:
+
+- **Back navigation** to homepage
+- **Company name** with logo
+- **X (Twitter) logo** indicating the platform
+- **Company links** for website, docs, GitHub, and Discord (if available)
+
+```tsx
+// Company links are conditionally rendered (src/components/contacts-list.tsx:69-132)
+<CompanyLinks
+  website={company.website}
+  docs={company.docs}
+  github={company.github}
+  discord={company.discord}
+/>
+```
+
+### Search and Filter
+
+Each company page includes a local search feature to filter contacts:
+
+<Steps>
+  <Step title="Search Input">
+    Type in the search box to filter contacts by product name, X handle, or email address
+  </Step>
+  
+  <Step title="Real-Time Filtering">
+    The contacts list updates immediately as you type (throttled to 300ms for performance)
+  </Step>
+  
+  <Step title="Visual Highlighting">
+    Matching products are highlighted in orange to make them easy to identify
+  </Step>
+  
+  <Step title="Auto-Scroll">
+    When using search, the page automatically scrolls to the first matching result
+  </Step>
+</Steps>
+
+### Contact Categories
+
+Contacts are organized into categories (e.g., "Product & Engineering", "Support", "Developer Relations"). Each category displays:
+
+```tsx
+<h2 className="uppercase tracking-wider text-xs">
+  {category.name}
+</h2>
+```
+
+## Contact Display
+
+Each contact entry shows:
+
+<CardGroup cols={2}>
+  <Card title="Product/Role Name" icon="tag">
+    The product or role (e.g., "Workers AI", "API Support"). Click to copy all handles.
+  </Card>
+  
+  <Card title="X Handles" icon="at">
+    Up to 2 handles shown directly, with a "more" dropdown for additional contacts
+  </Card>
+  
+  <Card title="Email Address" icon="envelope">
+    Optional email contact link (if available)
+  </Card>
+  
+  <Card title="Discord Link" icon="message-circle">
+    Optional Discord channel link (if available)
+  </Card>
+</CardGroup>
+
+### Handle Display Logic
+
+The system handles multiple contacts intelligently (`src/components/contacts-list.tsx:196-269`):
+
+**2 or fewer handles:**
+```tsx
+{contact.handles.map((handle) => (
+  <a href={`https://x.com/${handle.replace("@", "")}`}>
+    <Avatar />
+    <span>{handle}</span>
+  </a>
+))}
+```
+
+**More than 2 handles:**
+- Shows first 2 handles inline
+- Displays "more" link
+- Opens popover with remaining handles on click
+
+<Tip>
+  Clicking any product name copies all associated X handles to your clipboard, making it easy to mention multiple contacts in a single post.
+</Tip>
+
+## Contact Filtering
+
+### Filter Implementation
+
+The filtering system matches contacts against three fields (`src/components/contacts-list.tsx:35-53`):
+
+```typescript
+function filterContactsByQuery(
+  categories: Category[],
+  searchQuery: string
+): Category[] {
+  const query = searchQuery.toLowerCase();
+  return categories
+    .map((category) => ({
+      ...category,
+      contacts: category.contacts.filter((contact) => {
+        const productMatch = contact.product.toLowerCase().includes(query);
+        const handleMatch = contact.handles.some((handle) =>
+          handle.toLowerCase().includes(query)
+        );
+        const emailMatch = contact.email?.toLowerCase().includes(query);
+        return productMatch || handleMatch || emailMatch;
+      }),
+    }))
+    .filter((category) => category.contacts.length > 0);
+}
+```
+
+<Note>
+  Categories with no matching contacts are automatically hidden from the filtered view.
+</Note>
+
+### Highlight Detection
+
+Matching contacts are visually highlighted using the `isContactHighlighted` function:
+
+```typescript
+function isContactHighlighted(contact: Contact, searchQuery: string): boolean {
+  if (!searchQuery) return false;
+  
+  const query = searchQuery.toLowerCase();
+  return (
+    contact.product.toLowerCase().includes(query) ||
+    contact.handles.some((handle) => handle.toLowerCase().includes(query)) ||
+    Boolean(contact.email?.toLowerCase().includes(query))
+  );
+}
+```
+
+## URL Integration
+
+### Search Query Parameters
+
+When you navigate to a company page from search results, the query is preserved in the URL:
+
+- `/$company` - Show all contacts
+- `/$company?q=api` - Filter to "api" matches
+
+The query state is managed with `nuqs`:
+
+```typescript
+const [searchQuery, setSearchQuery] = useQueryState(
+  "q",
+  parseAsString.withDefault("").withOptions({
+    limitUrlUpdates: throttle(300),
+  })
+);
+```
+
+<Info>
+  URL query parameters make it easy to share links to specific products within a company page.
+</Info>
+
+## Copy Functionality
+
+### Copying Handles
+
+Click any product name to copy all associated X handles to your clipboard:
+
+```typescript
+const copyHandlesToClipboard = async (
+  product: string,
+  handles: string[]
+): Promise<void> => {
+  const handlesString = handles.join(" ");
+  try {
+    await navigator.clipboard.writeText(handlesString);
+    setCopiedProduct(product);
+    setTimeout(() => setCopiedProduct(null), 2000);
+  } catch (err) {
+    console.error("Failed to copy:", err);
+  }
+};
+```
+
+**Visual feedback:**
+- Product name temporarily changes to "Copied!" in green
+- Resets after 2 seconds
+
+## SEO and Metadata
+
+Each company page includes dynamic metadata for better sharing:
+
+```typescript
+head: ({ loaderData }) => {
+  const title = `who to bother at ${loaderData.name} on X`;
+  const description = `Find the right people to reach out to at ${loaderData.name} on X (Twitter). ${loaderData.description}`;
+  
+  return {
+    meta: [...seo({ title, description, ... })],
+    links: [
+      {
+        rel: "icon",
+        href: `/company-logos/${loaderData.logoType}.svg`,
+      }
+    ],
+  };
+}
+```
+
+<Card title="Open Graph Images" icon="image">
+  Each company page generates a unique Open Graph image at `/og/[company-id]` for rich social media previews.
+</Card>
+
+## Error Handling
+
+If a company is not found, the page displays a friendly error:
+
+```tsx
+errorComponent: ({ error }) => (
+  <div className="flex min-h-screen items-center justify-center">
+    <div className="text-center">
+      <h1>Company Not Found</h1>
+      <p>{error.message}</p>
+      <Link to="/">Back to home</Link>
+    </div>
+  </div>
+)
+```
+
+## Auto-Scroll Behavior
+
+When filtering results, the page automatically scrolls to the first match:
+
+```typescript
+useEffect(() => {
+  if (searchQuery && firstMatchRef.current) {
+    setTimeout(() => {
+      firstMatchRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  }
+}, [searchQuery]);
+```
+
+This ensures users immediately see relevant results without manual scrolling.

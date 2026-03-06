@@ -1,0 +1,524 @@
+---
+title: "Project Structure"
+description: "Complete file structure and organization guide for the Who To Bother codebase"
+---
+
+## Overview
+
+Who To Bother follows a clear, domain-driven structure organized by feature and functionality. The codebase uses TypeScript throughout with strict type checking enabled.
+
+## Root Directory
+
+```
+who-to-bother/
+├── src/                    # Source code
+├── public/                 # Static assets
+├── node_modules/           # Dependencies
+├── dist/                   # Build output
+├── package.json            # Dependencies and scripts
+├── tsconfig.json           # TypeScript configuration
+├── vite.config.ts          # Vite build configuration
+├── wrangler.jsonc          # Cloudflare deployment config
+├── tailwind.config.ts      # Tailwind CSS configuration
+├── biome.json              # Biome/Ultracite linting config
+└── README.md               # Project documentation
+```
+
+## Source Directory (`src/`)
+
+### Complete Structure
+
+```
+src/
+├── app/                    # Routes and pages (TanStack Start)
+│   ├── __root.tsx         # Root layout component
+│   ├── index.tsx          # Home page (/)
+│   ├── $company.tsx       # Dynamic company page (/:company)
+│   ├── search.tsx         # Search page (/search)
+│   ├── stats.tsx          # Statistics page (/stats)
+│   ├── sponsors.tsx       # Sponsors page (/sponsors)
+│   ├── login.tsx          # Login page (/login)
+│   ├── dashboard.tsx      # User dashboard (/dashboard)
+│   ├── opengraph.tsx      # OG image generator (/opengraph)
+│   ├── api/               # API routes
+│   │   ├── auth/          # Authentication endpoints
+│   │   │   └── $.ts       # Better Auth handler
+│   │   └── github/        # GitHub integration
+│   │       ├── fork.ts    # Fork repository
+│   │       ├── companies.ts    # Get company data
+│   │       └── create-pr.ts    # Create pull request
+│   ├── contribute/        # Contribution workflow
+│   │   ├── index.tsx      # Contribution home
+│   │   ├── add.tsx        # Add new company
+│   │   ├── edit.tsx       # Edit company list
+│   │   └── edit.$company.tsx   # Edit specific company
+│   └── og/                # Open Graph images
+│       ├── $company.tsx   # Company OG image
+│       └── search.tsx     # Search OG image
+│
+├── components/            # React components
+│   ├── ui/               # Reusable UI primitives
+│   │   ├── avatar.tsx    # User avatar
+│   │   ├── badge.tsx     # Status badges
+│   │   ├── button.tsx    # Button variants
+│   │   ├── input.tsx     # Form inputs
+│   │   ├── kbd.tsx       # Keyboard shortcuts
+│   │   ├── label.tsx     # Form labels
+│   │   ├── popover.tsx   # Popover overlay
+│   │   ├── tabs.tsx      # Tab navigation
+│   │   ├── textarea.tsx  # Multi-line input
+│   │   ├── toggle.tsx    # Toggle switch
+│   │   └── toggle-group.tsx   # Toggle group
+│   │
+│   ├── contribute/       # Contribution-specific components
+│   │   ├── company-form.tsx   # Company edit form
+│   │   ├── pr-status.tsx      # PR status display
+│   │   └── svg-uploader.tsx   # Logo SVG uploader
+│   │
+│   ├── company-logos.tsx      # Company logo display
+│   ├── contacts-list.tsx      # Contact list component
+│   ├── header.tsx            # Site header
+│   ├── footer.tsx            # Site footer
+│   ├── theme-provider.tsx    # Dark mode provider
+│   └── theme-toggle.tsx      # Theme switcher
+│
+├── data/                 # Static data and schemas
+│   └── companies/        # Company data directory
+│       ├── schema.ts     # Valibot validation schema
+│       ├── schema.json   # Generated JSON Schema
+│       ├── vercel.json   # Example: Vercel company data
+│       ├── appwrite.json # Example: Appwrite company data
+│       └── ...           # Additional company files
+│
+├── lib/                  # Utility libraries
+│   ├── auth.ts          # Authentication setup
+│   ├── auth-client.ts   # Auth client utilities
+│   ├── auth-middleware.ts    # Auth middleware
+│   ├── github.ts        # GitHub API integration
+│   ├── search.ts        # Fuse.js search setup
+│   ├── seo.ts           # SEO utilities
+│   ├── theme.ts         # Theme management
+│   ├── use-theme.ts     # Theme React hook
+│   └── utils.ts         # General utilities
+│
+├── scripts/             # Build and utility scripts
+│   ├── generate-favicons.ts   # Generate favicon assets
+│   ├── generate-sitemap.ts    # Generate sitemap.xml
+│   ├── generate-json-schema.ts     # Generate JSON Schema
+│   └── validate-companies.ts      # Validate company data
+│
+├── types/               # TypeScript type definitions
+│   └── ...              # Global types
+│
+├── routeTree.gen.ts    # Generated route tree (auto-generated)
+└── vite-env.d.ts       # Vite environment types
+```
+
+## Key Directories
+
+### `/src/app` - Routes & Pages
+
+TanStack Start uses file-based routing where each file in `app/` becomes a route.
+
+<ParamField path="__root.tsx" type="Layout">
+  Root layout component wrapping all pages.
+  
+  Contains:
+  - Global providers (theme, auth)
+  - Common layout elements (header, footer)
+  - Error boundaries
+</ParamField>
+
+<ParamField path="index.tsx" type="Page">
+  Home page (`/`) - Landing page with company directory
+</ParamField>
+
+<ParamField path="$company.tsx" type="Dynamic Route">
+  Individual company page (`/:company`)
+  
+  - URL parameter: `company` (company ID)
+  - Displays company details and contacts
+  - Dynamic OG images
+</ParamField>
+
+<ParamField path="api/" type="API Routes">
+  Server-side API endpoints
+  
+  **Authentication** (`api/auth/`):
+  - Better Auth integration for GitHub OAuth
+  
+  **GitHub Integration** (`api/github/`):
+  - `fork.ts` - Fork repository for contributions
+  - `companies.ts` - Fetch company data from GitHub
+  - `create-pr.ts` - Create pull requests
+</ParamField>
+
+<ParamField path="contribute/" type="Feature Group">
+  Contribution workflow pages
+  
+  - `index.tsx` - Contribution options
+  - `add.tsx` - Add new company form
+  - `edit.tsx` - Select company to edit
+  - `edit.$company.tsx` - Edit specific company
+</ParamField>
+
+### `/src/components` - UI Components
+
+<ParamField path="ui/" type="Primitive Components">
+  Low-level, reusable UI components built with Radix UI primitives.
+  
+  All components:
+  - Use Tailwind CSS for styling
+  - Support dark mode
+  - Include accessibility features
+  - Export component types for TypeScript
+</ParamField>
+
+<ParamField path="contribute/" type="Feature Components">
+  Domain-specific components for the contribution workflow:
+  
+  - **company-form.tsx**: TanStack Form implementation for editing company data
+  - **pr-status.tsx**: Shows PR creation status and GitHub link
+  - **svg-uploader.tsx**: Logo upload and preview component
+</ParamField>
+
+<ParamField path="Root Components" type="Shared">
+  - **company-logos.tsx**: Company logo grid display
+  - **contacts-list.tsx**: Searchable contact list with categories
+  - **header.tsx**: Site navigation and search
+  - **footer.tsx**: Footer with links
+  - **theme-provider.tsx**: Dark mode context provider
+  - **theme-toggle.tsx**: Light/dark mode switcher
+</ParamField>
+
+### `/src/data/companies` - Company Data
+
+<ParamField path="schema.ts" type="Valibot Schema">
+  Source of truth for data validation.
+  
+  Exports:
+  - `CompanySchema` - Valibot validation schema
+  - `Company` - Inferred TypeScript type
+  - `Category` - Category type
+  - `Contact` - Contact type
+  
+  See [Data Schema](/reference/data-schema) for complete documentation.
+</ParamField>
+
+<ParamField path="schema.json" type="JSON Schema">
+  Auto-generated JSON Schema for IDE autocomplete.
+  
+  Generated by: `pnpm generate-schema`
+  
+  Referenced in company JSON files:
+  ```json
+  {
+    "$schema": "./schema.json",
+    ...
+  }
+  ```
+</ParamField>
+
+<ParamField path="*.json" type="Company Data">
+  Individual company data files.
+  
+  Naming convention: `{company-id}.json`
+  
+  Example: `vercel.json`, `appwrite.json`, `cloudflare.json`
+</ParamField>
+
+### `/src/lib` - Utility Libraries
+
+<ParamField path="auth.ts" type="Authentication">
+  Better Auth configuration and setup.
+  
+  Handles:
+  - GitHub OAuth provider
+  - Session management
+  - User data
+</ParamField>
+
+<ParamField path="github.ts" type="GitHub API">
+  GitHub API integration for contribution workflow.
+  
+  Functions:
+  - Fork repository
+  - Create/update files
+  - Create pull requests
+  - Fetch company data
+</ParamField>
+
+<ParamField path="search.ts" type="Search">
+  Fuse.js fuzzy search configuration.
+  
+  Searches across:
+  - Company names
+  - Descriptions
+  - Product names
+  - Contact handles
+</ParamField>
+
+<ParamField path="seo.ts" type="SEO">
+  SEO utilities for meta tags and Open Graph images.
+  
+  - Dynamic page titles
+  - OG image generation
+  - Meta descriptions
+</ParamField>
+
+<ParamField path="theme.ts" type="Theme">
+  Theme management utilities.
+  
+  - Dark/light mode toggle
+  - System preference detection
+  - Local storage persistence
+</ParamField>
+
+<ParamField path="utils.ts" type="General Utilities">
+  Shared utility functions.
+  
+  Common utilities:
+  - `cn()` - Merge Tailwind classes with `clsx` and `tailwind-merge`
+  - String manipulation
+  - Array helpers
+</ParamField>
+
+### `/src/scripts` - Build Scripts
+
+<ParamField path="generate-favicons.ts" type="Build Script">
+  Generates favicon assets for all platforms.
+  
+  Run: `pnpm generate-favicons`
+  
+  Creates:
+  - favicon.ico
+  - apple-touch-icon.png
+  - Various sizes for PWA
+</ParamField>
+
+<ParamField path="generate-sitemap.ts" type="Build Script">
+  Generates sitemap.xml for SEO.
+  
+  Run: `pnpm generate-sitemap`
+  
+  Includes:
+  - Home page
+  - All company pages
+  - Static pages (search, stats, sponsors)
+</ParamField>
+
+<ParamField path="validate-companies.ts" type="Validation">
+  Validates all company JSON files against Valibot schema.
+  
+  Run: `pnpm validate`
+  
+  Checks:
+  - Schema compliance
+  - Required fields
+  - Format validation (URLs, emails, handles)
+  
+  Runs automatically in `prebuild` script.
+</ParamField>
+
+<ParamField path="generate-json-schema.ts" type="Schema Generation">
+  Converts Valibot schema to JSON Schema.
+  
+  Run: `pnpm generate-schema`
+  
+  Output: `src/data/companies/schema.json`
+  
+  Enables IDE autocomplete for company JSON files.
+</ParamField>
+
+## Configuration Files
+
+### TypeScript Configuration
+
+<Expandable title="tsconfig.json">
+
+```json
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "target": "ES6",
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "strictNullChecks": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/vite-env.d.ts"],
+  "exclude": ["node_modules"]
+}
+```
+
+**Key Settings**:
+- `strict: true` - All strict type-checking options
+- `paths: {"@/*": ["./src/*"]}` - Import alias for shorter imports
+- `jsx: "react-jsx"` - Modern JSX transform (no React import needed)
+- `moduleResolution: "bundler"` - Optimized for Vite bundler
+
+</Expandable>
+
+### Vite Configuration
+
+<Expandable title="vite.config.ts">
+
+```typescript
+import { cloudflare } from "@cloudflare/vite-plugin";
+import tailwindcss from "@tailwindcss/vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+
+export default defineConfig({
+  server: {
+    port: 3311,
+    hmr: {
+      protocol: "ws",
+      port: 3311,
+      overlay: true,
+      timeout: 30_000,
+    },
+  },
+  plugins: [
+    cloudflare({ viteEnvironment: { name: "ssr" } }),
+    tailwindcss(),
+    tsconfigPaths(),
+    tanstackStart({
+      srcDirectory: "src",
+      router: {
+        routesDirectory: "app",
+      },
+    }),
+    viteReact(),
+  ],
+  build: {
+    rollupOptions: {
+      output: {
+        advancedChunks: {
+          groups: [
+            { name: "vendor", test: /\/react(?:-dom)?/ }
+          ],
+        },
+      },
+    },
+  },
+});
+```
+
+**Key Features**:
+- Custom port: 3311
+- Cloudflare SSR support
+- TanStack Start routing from `app/` directory
+- TypeScript path aliases via `tsconfig-paths`
+- React vendor code splitting
+
+</Expandable>
+
+### Cloudflare Configuration
+
+<Expandable title="wrangler.jsonc">
+
+```json
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "who-to-bother-at-cf",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "placement": {
+    "mode": "smart"
+  },
+  "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "who-to-bother-at.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "bother.at",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "VITE_APP_URL": "https://who-to-bother-at.com"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+      "persist": true
+    }
+  }
+}
+```
+
+**Key Settings**:
+- Node.js compatibility for Workers
+- Smart placement for optimal routing
+- Multiple custom domains
+- Full logging enabled
+
+</Expandable>
+
+## Import Aliases
+
+The project uses TypeScript path aliases for cleaner imports:
+
+```typescript
+// Instead of: import { Button } from "../../../components/ui/button"
+import { Button } from "@/components/ui/button";
+
+// Instead of: import { Company } from "../../../data/companies/schema"
+import type { Company } from "@/data/companies/schema";
+```
+
+**Configuration**: `tsconfig.json` → `paths` → `"@/*": ["./src/*"]`
+
+## File Naming Conventions
+
+<ResponseField name="Components" type="kebab-case">
+  `company-logos.tsx`, `contacts-list.tsx`
+</ResponseField>
+
+<ResponseField name="Routes" type="kebab-case or $param">
+  - Static: `search.tsx`, `stats.tsx`
+  - Dynamic: `$company.tsx`, `edit.$company.tsx`
+</ResponseField>
+
+<ResponseField name="Utilities" type="kebab-case">
+  `use-theme.ts`, `auth-client.ts`
+</ResponseField>
+
+<ResponseField name="Company Data" type="kebab-case.json">
+  `vercel.json`, `better-auth.json`, `cloud-flare.json`
+</ResponseField>
+
+## Build Output
+
+```
+dist/
+├── client/              # Client-side assets
+│   ├── assets/         # Bundled JS/CSS
+│   └── index.html      # Entry HTML
+└── server/             # Server-side bundle
+    └── index.js        # Cloudflare Worker entry
+```
+
+## Related
+
+- [Data Schema](/reference/data-schema) - Schema documentation
+- [Tech Stack](/reference/tech-stack) - Technologies used
+- [Contributing Guide](/community/contributing) - How to contribute

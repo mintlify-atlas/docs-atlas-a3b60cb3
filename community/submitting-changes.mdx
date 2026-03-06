@@ -1,0 +1,637 @@
+---
+title: 'Submitting Changes'
+description: 'Step-by-step guide to submitting contributions via the web interface'
+---
+
+The Who To Bother web interface makes it easy to contribute without touching Git or command-line tools. This guide walks you through the entire process of submitting a new company or updating existing information.
+
+## Prerequisites
+
+Before you begin, make sure you have:
+
+<CardGroup cols={2}>
+  <Card title="GitHub Account" icon="github">
+    A GitHub account to authenticate and create pull requests
+  </Card>
+  <Card title="Company Information" icon="building">
+    Company details, contact information, and handles ready
+  </Card>
+  <Card title="SVG Logo" icon="image">
+    An SVG version of the company logo (preferred format)
+  </Card>
+  <Card title="Verified Information" icon="shield-check">
+    Confirmed that all contact information is public and accurate
+  </Card>
+</CardGroup>
+
+## Adding a New Company
+
+<Steps>
+  <Step title="Navigate to the contribute page">
+    Go to [who-to-bother-at.com/contribute](https://who-to-bother-at.com/contribute)
+  </Step>
+  
+  <Step title="Sign in with GitHub">
+    Click "Sign in with GitHub" and authorize the application
+    
+    <Note>
+      You'll be asked to grant permissions to access your public repositories. This allows the app to fork the repo and create pull requests on your behalf.
+    </Note>
+  </Step>
+  
+  <Step title="Click 'Add New Company'">
+    After signing in, click the "Add New Company" card
+  </Step>
+  
+  <Step title="Fill out the form">
+    Complete all required fields in the contribution form
+  </Step>
+  
+  <Step title="Upload logo">
+    Upload or paste your SVG logo in the logo section
+  </Step>
+  
+  <Step title="Preview your changes">
+    Switch to the Preview tab to see how your company will appear
+  </Step>
+  
+  <Step title="Submit and create PR">
+    Click "Submit & Create PR" to automatically create a pull request
+  </Step>
+</Steps>
+
+## The Contribution Form
+
+### Company Information
+
+The form has three tabs for different editing modes:
+
+<Tabs>
+  <Tab title="Form">
+    Visual form interface with fields for all company information
+  </Tab>
+  <Tab title="Preview">
+    Live preview of how your company will appear on the site
+  </Tab>
+  <Tab title="Code Editor">
+    Direct JSON editing for advanced users
+  </Tab>
+</Tabs>
+
+### Required Fields
+
+<Warning>
+  All of these fields must be filled out before you can submit:
+</Warning>
+
+**Company ID**: A unique identifier (lowercase, alphanumeric, dashes only)
+- Example: `vercel`, `github`, `anthropic`
+
+**Company Name**: The official company name
+- Example: "Vercel", "GitHub", "Anthropic"
+
+**Description**: Brief description of what the company does (1-2 sentences)
+- Example: "Vercel is a cloud platform for static sites and serverless functions"
+
+**Logo Type**: The key used to reference the logo (usually same as ID)
+- Example: `vercel`
+
+**At least one category**: A logical grouping for contacts
+- Example: "Products", "Engineering", "Support"
+
+**At least one contact**: A product/role with at least one valid X handle
+- Example: Product: "Next.js", Handle: "@leeerob"
+
+### Optional Fields
+
+You can also add:
+
+- **Website URL**: Company homepage
+- **Documentation URL**: Link to company docs
+- **GitHub URL**: Company's GitHub organization
+- **Discord URL**: Company's Discord server
+- **Email addresses**: Public contact emails (for specific roles)
+
+### SVG Logo
+
+The logo uploader accepts SVG files. The system will automatically:
+
+- Add proper width/height attributes (`30x30`)
+- Add dark mode support via className
+- Replace fill colors with `currentColor` for theming
+- Validate the SVG structure
+
+```xml Example SVG
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <title>Company Name</title>
+  <circle cx="50" cy="50" r="40" fill="currentColor" />
+</svg>
+```
+
+## Categories and Contacts
+
+### Adding Categories
+
+Categories help organize contacts by product, team, or functional area:
+
+```json Example Categories
+{
+  "categories": [
+    {
+      "name": "Products",
+      "contacts": [...]
+    },
+    {
+      "name": "Engineering",
+      "contacts": [...]
+    },
+    {
+      "name": "Developer Relations",
+      "contacts": [...]
+    }
+  ]
+}
+```
+
+### Adding Contacts
+
+Each contact represents a product, role, or topic:
+
+```json Example Contact
+{
+  "product": "Next.js",
+  "handles": ["@leeerob", "@timneutkens"],
+  "email": "support@vercel.com"
+}
+```
+
+<Note>
+  Handles must start with `@` and contain only letters, numbers, and underscores.
+</Note>
+
+### Multiple Handles
+
+You can add multiple X handles for each contact:
+
+```json Multiple Handles
+{
+  "product": "API Platform",
+  "handles": ["@handle1", "@handle2", "@handle3"]
+}
+```
+
+## Behind the Scenes: The GitHub Integration
+
+When you click "Submit & Create PR", the application performs several automated steps:
+
+### Step 1: Fork the Repository
+
+```typescript src/app/api/github/fork.ts
+// Check if fork exists
+const existingFork = await getUserFork(accessToken, user.login);
+
+if (!existingFork) {
+  // Create new fork
+  fork = await forkRepository(accessToken);
+  
+  // Wait for fork to be ready (GitHub fork creation is async)
+  await waitForFork(accessToken, user.login);
+}
+
+// Sync fork with upstream to ensure it's up to date
+await syncFork(accessToken, user.login);
+```
+
+<Steps>
+  <Step title="Check for existing fork">
+    The system checks if you've already forked the repository
+  </Step>
+  
+  <Step title="Create fork if needed">
+    If no fork exists, creates a new one to your GitHub account
+  </Step>
+  
+  <Step title="Sync with upstream">
+    Ensures your fork is up to date with the main repository
+  </Step>
+</Steps>
+
+### Step 2: Create a Branch
+
+```typescript src/app/api/github/create-pr.ts
+// Generate unique branch name
+const branchName = generateBranchName(
+  company.id,
+  isEdit,
+  user.login
+);
+// Example: "api-add-vercel-username-1234567890"
+
+// Get the latest commit SHA from main branch
+const baseSha = await getBranchSha(
+  accessToken,
+  workingRepo,
+  GITHUB_CONFIG.defaultBranch
+);
+
+// Create new branch from main
+await createBranch({
+  accessToken,
+  username: workingRepo,
+  branchName,
+  sha: baseSha,
+});
+```
+
+Branch names follow this pattern:
+- Prefix: `api-add` (new company) or `api-edit` (update)
+- Company ID: `vercel`
+- Username: Your GitHub username
+- Timestamp: Unix timestamp for uniqueness
+
+Result: `api-add-vercel-yourname-1708123456`
+
+### Step 3: Commit Changes
+
+The system commits two files to your branch:
+
+**1. Company Data File** (`src/data/companies/yourcompany.json`):
+
+```typescript src/app/api/github/create-pr.ts
+const companyJson = JSON.stringify(
+  {
+    $schema: "./schema.json",
+    ...company,
+  },
+  null,
+  2
+);
+
+await createOrUpdateFile({
+  accessToken,
+  username: workingRepo,
+  path: `src/data/companies/${company.id}.json`,
+  content: companyJson,
+  message: `feat: add ${company.name} company data`,
+  branch: branchName,
+});
+```
+
+**2. Logo Component** (`src/components/company-logos.tsx`):
+
+```typescript src/lib/github.ts
+// Get existing logos file
+const logosFile = await getFileContent({
+  accessToken,
+  username: workingRepo,
+  path: "src/components/company-logos.tsx",
+  branch: branchName,
+});
+
+// Inject new logo
+const updatedLogosContent = injectLogoIntoTsx(
+  logosFile.content,
+  company.logoType,
+  svgLogo
+);
+
+await createOrUpdateFile({
+  accessToken,
+  username: workingRepo,
+  path: "src/components/company-logos.tsx",
+  content: updatedLogosContent,
+  message: `feat: add ${company.name} logo`,
+  branch: branchName,
+  existingSha: logosFile.sha,
+});
+```
+
+### Step 4: Create Pull Request
+
+```typescript src/app/api/github/create-pr.ts
+const { title, body } = generatePRContent(
+  company.id,
+  company.name,
+  isEdit
+);
+
+const pullRequest = await createPullRequest({
+  accessToken,
+  username: user.login,
+  branchName,
+  title,
+  body,
+});
+
+// Returns PR URL: https://github.com/kulterryan/who-to-bother-at-on-x/pull/123
+```
+
+The PR includes:
+- **Title**: `Add: Company Name` or `Update: Company Name`
+- **Description**: Automatically generated with checklist
+- **Branch reference**: `username:branch-name → kulterryan:main`
+
+Example PR body:
+
+```markdown
+## Add Company: Vercel
+
+This PR was automatically generated from the [Who to Bother](https://who-to-bother-at.com) website.
+
+### Changes
+- Added company data file: `src/data/companies/vercel.json`
+- Added company logo in: `src/components/company-logos.tsx`
+
+### Checklist
+- [ ] Company information is accurate
+- [ ] Logo displays correctly
+- [ ] All contacts have valid X handles
+
+---
+*Submitted via the website contribution form*
+```
+
+## Visual Progress Indicators
+
+The submission process shows real-time progress:
+
+```typescript src/components/contribute/pr-status.tsx
+// Status states during submission:
+type PRStatusState =
+  | { type: "idle" }
+  | { type: "forking"; alreadyExists?: boolean }
+  | { type: "creating-branch" }
+  | { type: "committing" }
+  | { type: "creating-pr" }
+  | { type: "success"; prUrl: string; prNumber: number }
+  | { type: "success-owner"; branch: string }
+  | { type: "error"; message: string };
+```
+
+You'll see messages like:
+
+<Steps>
+  <Step title="Forking repository...">
+    Creating or verifying your fork of the main repository
+  </Step>
+  
+  <Step title="Creating branch...">
+    Creating a new branch for your changes
+  </Step>
+  
+  <Step title="Committing changes...">
+    Uploading your company data and logo files
+  </Step>
+  
+  <Step title="Creating pull request...">
+    Opening a pull request to the main repository
+  </Step>
+  
+  <Step title="Success!">
+    Your PR is ready for review with a link to view it on GitHub
+  </Step>
+</Steps>
+
+## After Submission
+
+### What Happens Next
+
+<Steps>
+  <Step title="Automatic validation">
+    GitHub Actions runs automated checks:
+    - JSON schema validation
+    - Valibot schema validation
+    - Build process verification
+  </Step>
+  
+  <Step title="Maintainer review">
+    A maintainer will review your contribution for:
+    - Accuracy of information
+    - Proper logo display
+    - Valid X handles
+    - Overall quality
+  </Step>
+  
+  <Step title="Feedback or approval">
+    You may receive:
+    - Approval and merge
+    - Requests for changes
+    - Questions about the submission
+  </Step>
+  
+  <Step title="Deployment">
+    Once merged, your changes will be deployed to the live site
+  </Step>
+</Steps>
+
+### Viewing Your Pull Request
+
+After submission, you'll see a success message with a link to your PR:
+
+```
+Pull request created successfully!
+View your PR: https://github.com/kulterryan/who-to-bother-at-on-x/pull/123
+```
+
+Click the link to:
+- View the status of automated checks
+- See maintainer feedback
+- Track the merge status
+- Make additional changes if requested
+
+### Making Changes to Your PR
+
+If a maintainer requests changes:
+
+1. Navigate to your fork on GitHub
+2. Switch to the branch used for the PR
+3. Make the requested changes
+4. Commit and push to the same branch
+5. The PR will automatically update
+
+Alternatively, you can submit a new contribution through the website.
+
+## Troubleshooting
+
+### "Fork not found" Error
+
+If you see this error:
+
+1. Wait a few seconds and try again (GitHub fork creation can take time)
+2. Check your GitHub account to verify the fork was created
+3. If the fork exists but error persists, try refreshing the page
+
+### "Unauthorized" Error
+
+This means your session has expired:
+
+1. Sign out and sign back in
+2. Try the submission again
+3. Ensure you granted all required permissions during OAuth
+
+### Validation Errors
+
+If the form won't submit:
+
+<Tip>
+  Check the validation messages below each field to see what's missing or incorrect.
+</Tip>
+
+Common issues:
+- **Company ID**: Must be lowercase, alphanumeric, and dashes only
+- **Handles**: Must start with `@` and follow Twitter handle format
+- **Email**: Must be a valid email format (if provided)
+- **SVG Logo**: Must be valid SVG XML
+
+### Build Failures
+
+If automated checks fail on your PR:
+
+1. Check the GitHub Actions logs for error details
+2. Common issues include:
+   - Invalid JSON syntax
+   - Schema validation failures
+   - Missing required fields
+3. Make corrections and push updates to your branch
+
+## Manual GitHub Workflow
+
+If you prefer to contribute directly via GitHub instead of using the web interface:
+
+<CodeGroup>
+```bash Fork and Clone
+# Fork the repository on GitHub, then clone your fork
+git clone https://github.com/YOUR_USERNAME/who-to-bother-at-on-x.git
+cd who-to-bother-at-on-x
+
+# Create a new branch
+git checkout -b add-company-name
+```
+
+```bash Add Company Files
+# Create company JSON file
+touch src/data/companies/yourcompany.json
+
+# Edit company-logos.tsx
+# Add your SVG logo to the companyLogos object
+```
+
+```bash Validate and Test
+# Install dependencies
+pnpm install
+
+# Validate your changes
+pnpm validate
+
+# Test locally
+pnpm dev
+```
+
+```bash Submit PR
+# Commit your changes
+git add .
+git commit -m "feat: add YourCompany"
+
+# Push to your fork
+git push origin add-company-name
+
+# Create PR on GitHub
+gh pr create --title "Add: YourCompany" --body "..."
+```
+</CodeGroup>
+
+## Best Practices
+
+<Tip>
+  Following these best practices will help your contribution get merged faster.
+</Tip>
+
+### Before Submitting
+
+**Verify Information**: Double-check all handles, emails, and links
+**Test Locally**: If possible, clone the repo and test your changes locally
+**Use Preview**: Always check the preview tab to see how your company will appear
+**Read Guidelines**: Review the [contributing guidelines](/community/contributing) first
+
+### During Submission
+
+**Accurate Data**: Only include verified, public information
+**Quality Logos**: Use high-quality SVG logos with proper theming
+**Clear Descriptions**: Write concise, informative company descriptions
+**Logical Organization**: Group contacts in meaningful categories
+
+### After Submission
+
+**Monitor Your PR**: Check for feedback from maintainers
+**Respond Promptly**: Address any requested changes quickly
+**Be Patient**: Maintainers review PRs as time allows
+**Stay Engaged**: You'll receive GitHub notifications for PR updates
+
+## Example: Complete Submission
+
+Here's a complete example of adding a company:
+
+<CodeGroup>
+```json Company Data
+{
+  "$schema": "./schema.json",
+  "id": "acme-corp",
+  "name": "Acme Corp",
+  "description": "Acme builds cloud infrastructure tools for modern developers",
+  "logoType": "acmecorp",
+  "website": "https://acme.com",
+  "docs": "https://docs.acme.com",
+  "github": "https://github.com/acmecorp",
+  "categories": [
+    {
+      "name": "Products",
+      "contacts": [
+        {
+          "product": "Acme Platform",
+          "handles": ["@acme_platform"],
+          "email": "platform@acme.com"
+        },
+        {
+          "product": "Acme CLI",
+          "handles": ["@acme_cli", "@acme_devtools"]
+        }
+      ]
+    },
+    {
+      "name": "Support",
+      "contacts": [
+        {
+          "product": "Technical Support",
+          "handles": ["@acme_support"],
+          "email": "support@acme.com"
+        }
+      ]
+    }
+  ]
+}
+```
+
+```svg Logo SVG
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <title>Acme Corp logo</title>
+  <rect x="10" y="10" width="80" height="80" fill="currentColor" />
+  <circle cx="50" cy="50" r="20" fill="white" />
+</svg>
+```
+</CodeGroup>
+
+This would generate a PR with:
+- Branch: `api-add-acme-corp-yourname-1708123456`
+- Title: `Add: Acme Corp`
+- Files: `src/data/companies/acme-corp.json` and logo in `company-logos.tsx`
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Contributing Guide" icon="book-open" href="/community/contributing">
+    Learn more about contribution guidelines and best practices
+  </Card>
+  <Card title="Authentication" icon="lock" href="/community/authentication">
+    Understand how the GitHub OAuth authentication works
+  </Card>
+</CardGroup>

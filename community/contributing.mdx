@@ -1,0 +1,241 @@
+---
+title: 'Contributing'
+description: 'Learn how to contribute company information to the Who To Bother directory'
+---
+
+Who To Bother is a community-maintained directory that helps developers find the right people to reach out to at tech companies on X (formerly Twitter). We welcome contributions from anyone who wants to help make this resource more comprehensive and useful.
+
+## Quick Start
+
+There are two ways to contribute to Who To Bother:
+
+<CardGroup cols={2}>
+  <Card title="Web Interface" icon="globe" href="/community/submitting-changes">
+    Use the website's contribution form to submit changes directly through your browser. This is the easiest way to contribute.
+  </Card>
+  <Card title="GitHub Workflow" icon="github">
+    Fork the repository and submit a pull request manually. This gives you more control over your changes.
+  </Card>
+</CardGroup>
+
+## What You Can Contribute
+
+### Adding a New Company
+
+You can add any tech company that has a presence on X. Each company entry includes:
+
+- **Company Information**: Name, description, and logo
+- **Contact Categories**: Logical groupings (e.g., Products, Engineering, Support)
+- **Contact Details**: Product/role names and associated X handles
+- **Optional Links**: Website, documentation, GitHub, Discord
+
+### Updating Existing Companies
+
+You can update existing company entries to:
+
+- Add new contacts or categories
+- Update outdated information
+- Fix errors or typos
+- Add optional company links
+
+## Contribution Guidelines
+
+<Note>
+  Only include public X handles of people who are comfortable being contacted. Never add personal contact information without permission.
+</Note>
+
+### Content Standards
+
+**Handles**: Only include public Twitter/X handles of people who are comfortable being contacted about their company or product.
+
+**Email Addresses**: Only include publicly available email addresses (e.g., from company websites, public profiles, or with explicit permission).
+
+**Accuracy**: Ensure all information is accurate and up-to-date. Double-check handles and spellings.
+
+**Organization**: Group contacts logically by product, team, or functional area.
+
+**Descriptions**: Keep company descriptions concise and informative (1-2 sentences).
+
+**Logos**: Use SVG format when possible. Ensure logos are appropriately sized and themed for dark mode.
+
+### What Not to Include
+
+<Warning>
+  Do not add personal contact information, private accounts, or people who have not publicly indicated they're open to professional outreach.
+</Warning>
+
+- Personal email addresses or phone numbers
+- Private or protected social media accounts
+- People who have requested not to be contacted
+- Inaccurate or outdated information
+- Promotional content or advertisements
+
+## How Contributions Work
+
+<Steps>
+  <Step title="Sign in with GitHub">
+    Authenticate using your GitHub account. This allows the system to create pull requests on your behalf.
+  </Step>
+  
+  <Step title="Fill out the form">
+    Enter company details, contacts, and upload a logo using the web interface.
+  </Step>
+  
+  <Step title="Automatic PR creation">
+    The system automatically forks the repository (if needed), creates a branch, commits your changes, and opens a pull request.
+  </Step>
+  
+  <Step title="Review and merge">
+    A maintainer will review your contribution and merge it if everything looks good.
+  </Step>
+</Steps>
+
+## File Structure
+
+Understanding the repository structure helps if you want to contribute directly via GitHub:
+
+```
+src/
+├── data/
+│   └── companies/
+│       ├── schema.json          # JSON Schema for validation
+│       ├── schema.ts            # Valibot schema
+│       └── yourcompany.json     # Company data files
+└── components/
+    └── company-logos.tsx        # Logo components
+```
+
+### Company Data File
+
+Each company has a JSON file in `src/data/companies/`:
+
+```json yourcompany.json
+{
+  "$schema": "./schema.json",
+  "id": "yourcompany",
+  "name": "Your Company",
+  "description": "Brief description of what your company does",
+  "logoType": "yourcompany",
+  "categories": [
+    {
+      "name": "Products",
+      "contacts": [
+        {
+          "product": "Product Name",
+          "handles": ["@twitter_handle"],
+          "email": "contact@example.com"
+        }
+      ]
+    }
+  ],
+  "website": "https://yourcompany.com",
+  "docs": "https://docs.yourcompany.com",
+  "github": "https://github.com/yourcompany",
+  "discord": "https://discord.gg/yourcompany"
+}
+```
+
+### Logo Component
+
+Logos are defined in `src/components/company-logos.tsx`:
+
+```tsx company-logos.tsx
+export const companyLogos: Record<string, JSX.Element> = {
+  yourcompany: (
+    <svg 
+      viewBox="0 0 100 100" 
+      width="30" 
+      height="30" 
+      className="text-zinc-900 dark:text-zinc-100"
+      aria-labelledby="yourcompany-logo-title"
+    >
+      <title id="yourcompany-logo-title">YourCompany logo</title>
+      <path fill="currentColor" d="..." />
+    </svg>
+  ),
+};
+```
+
+## Validation
+
+All company data is validated against a Valibot schema to ensure data integrity:
+
+<CodeGroup>
+```bash Terminal
+pnpm validate
+```
+
+```bash Expected Output
+✓ Validating company data files...
+✓ All 25 company files are valid
+```
+</CodeGroup>
+
+Common validation errors include:
+
+- Missing required fields (`id`, `name`, `description`, `logoType`, `categories`)
+- Invalid handle format (must start with `@` and contain only letters, numbers, and underscores)
+- Invalid email format
+- Empty contacts or categories arrays
+
+## Testing Locally
+
+Before submitting your changes, test them locally:
+
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    pnpm install
+    ```
+  </Step>
+  
+  <Step title="Run validation">
+    ```bash
+    pnpm validate
+    ```
+  </Step>
+  
+  <Step title="Start development server">
+    ```bash
+    pnpm dev
+    ```
+  </Step>
+  
+  <Step title="Preview your changes">
+    Navigate to `http://localhost:3000/yourcompany` to see your company page.
+  </Step>
+</Steps>
+
+## Code of Conduct
+
+<Tip>
+  Be respectful, professional, and collaborative. We're all working together to build a useful community resource.
+</Tip>
+
+When contributing to Who To Bother:
+
+- **Be respectful and professional** in all interactions
+- **Only add accurate information** that you've verified
+- **Respect privacy** - don't add personal contact information without permission
+- **Focus on people who are actively engaged** with the developer community
+- **Be patient** - maintainers review PRs as time allows
+- **Be open to feedback** - we may request changes to your contribution
+
+## Getting Help
+
+If you have questions or need assistance:
+
+- **Open an issue** on [GitHub](https://github.com/kulterryan/who-to-bother-at-on-x/issues)
+- **Reach out on X** to [@thehungrybird_](https://x.com/thehungrybird_)
+- **Check the documentation** for detailed guides on authentication and submitting changes
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/community/authentication">
+    Learn how the GitHub OAuth authentication system works
+  </Card>
+  <Card title="Submit Changes" icon="git-pull-request" href="/community/submitting-changes">
+    Step-by-step guide to submitting your first contribution
+  </Card>
+</CardGroup>
