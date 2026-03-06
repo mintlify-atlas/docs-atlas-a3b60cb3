@@ -307,6 +307,38 @@ If you're repeatedly asked to sign in:
   For development, ensure `BETTER_AUTH_SECRET` is set in your environment. This secret is used to encrypt session data.
 </Note>
 
+## Using the Dashboard
+
+After signing in, you can access your dashboard at `/dashboard`. The dashboard provides:
+
+- **Session Information**: View your current session details and authentication status
+- **User Profile**: See your GitHub profile information
+- **Quick Links**: Navigate to search or back to the homepage
+
+The dashboard serves as a simple authenticated page that demonstrates the authentication system is working correctly. It's protected by auth middleware, so only signed-in users can access it.
+
+```typescript src/app/dashboard.tsx
+// Dashboard route with auth middleware
+export const Route = createFileRoute("/dashboard")({
+  component: DashboardPage,
+  server: {
+    middleware: [authMiddleware],
+  },
+});
+```
+
+### Sign Out
+
+From the dashboard, you can sign out using the "Sign Out" button, which clears your session and redirects you to the homepage.
+
+## Login Page
+
+The `/login` page provides a dedicated sign-in interface. If you attempt to access the contribute pages without being authenticated, you'll be redirected here. The login page includes:
+
+- **GitHub OAuth sign-in button**: Initiates the OAuth flow
+- **Clear messaging**: Explains why authentication is needed
+- **Redirect handling**: Returns you to your intended destination after sign-in
+
 ## Next Steps
 
 <CardGroup cols={2}>
